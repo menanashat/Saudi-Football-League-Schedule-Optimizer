@@ -1,0 +1,103 @@
+[
+  {
+    "id": 1,
+    "title": "Pachamama Viva: Un Diálogo por la Tierra y sus Guardianes",
+    "date": "2025-08-07",
+    "time": "19:00",
+    "type": "webinar",
+    "description": "A dialogue for Earth and its guardians",
+    "category": "awareness",
+    "source": "Stop Ecocide International"
+  },
+  {
+    "id": 2,
+    "title": "Nature is our future at Choose Nature",
+    "date": "2025-09-16",
+    "time": "14:00",
+    "type": "conference",
+    "description": "Environmental conference focusing on nature conservation",
+    "category": "conference",
+    "source": "Stop Ecocide International"
+  },
+  {
+    "id": 3,
+    "title": "Youth Artbook Launch Webinar – Ecocide in Our Eyes",
+    "date": "2025-07-04",
+    "time": "15:00",
+    "type": "webinar",
+    "description": "Launch of youth artbook on ecocide awareness",
+    "category": "youth",
+    "source": "Stop Ecocide International"
+  },
+  {
+    "id": 4,
+    "title": "Introducing ecocide - towards a new international crime",
+    "date": "2025-07-02",
+    "time": "18:00",
+    "type": "webinar",
+    "description": "Discussion on ecocide as an international crime",
+    "category": "legal",
+    "source": "Stop Ecocide International"
+  },
+  {
+    "id": 5,
+    "title": "International Court of Justice Climate Obligations",
+    "date": "2025-07-23",
+    "time": "10:00",
+    "type": "legal",
+    "description": "ICJ sets out states' climate obligations with implications for ecocide law",
+    "category": "legal",
+    "source": "Stop Ecocide International"
+  },
+  {
+    "id": 6,
+    "title": "World Environment Day - Stop Ecocide Campaign",
+    "date": "2025-06-05",
+    "time": "12:00",
+    "type": "campaign",
+    "description": "Global campaign day for environmental protection",
+    "category": "awareness",
+    "source": "FIFA Calendar"
+  },
+  {
+    "id": 7,
+    "title": "Earth Day - Ecocide Awareness",
+    "date": "2025-04-22",
+    "time": "10:00",
+    "type": "campaign",
+    "description": "Earth Day awareness campaign against ecocide",
+    "category": "awareness",
+    "source": "AFC Calendar"
+  },
+  {
+    "id": 8,
+    "title": "International Day of Forests - Deforestation Prevention",
+    "date": "2025-03-21",
+    "time": "11:00",
+    "type": "campaign",
+    "description": "Campaign against deforestation and forest destruction",
+    "category": "awareness",
+    "source": "SAFF Calendar"
+  },
+  {
+    "id": 9,
+    "title": "World Wildlife Day - Ecosystem Protection",
+    "date": "2025-03-03",
+    "time": "13:00",
+    "type": "campaign",
+    "description": "Wildlife and ecosystem protection awareness",
+    "category": "awareness",
+    "source": "FIFA Calendar"
+  },
+  {
+    "id": 10,
+    "title": "International Day of Climate Action",
+    "date": "2025-10-24",
+    "time": "16:00",
+    "type": "campaign",
+    "description": "Global climate action day with ecocide focus",
+    "category": "awareness",
+    "source": "AFC Calendar"
+  }
+]
+
