@@ -2000,112 +2000,6 @@ def show_afc_replica_calendar_tab():
     # CSS for calendar
     st.markdown("""
         <style>
-            .selected-match { background-color: #28a745 !important; color: white !important; }
-            .selected-match:hover { background-color: #218838 !important; }
-            .match-event { background-color: #0d6efd; color: white; }
-            .event-indicator { 
-                width: 100%; height: 25px; border-radius: 3px; font-size: 9px; 
-                text-align: center; margin-bottom: 2px; padding: 2px; 
-                cursor: pointer; display: block; overflow: hidden;
-            }
-            .day-cell { 
-                background-color: white; border: 1px solid #e9ecef; 
-                min-height: 80px; padding: 5px; margin-bottom: 2px;
-            }
-            .month-container { 
-                border: 1px solid #dee2e6; border-radius: 8px; 
-                background-color: white; margin: 5px; min-width: 200px;
-            }
-            .month-label { 
-                background: #6c757d; color: white; font-weight: bold; 
-                text-align: center; padding: 10px;
-            }
-            .year-section { 
-                display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    # Generate calendar HTML safely
-    calendar_html = '<div class="afc-calendar-wrapper">'
-    
-    # Focus on months that have selected matches
-    current_year = 2025
-    months_to_show = [10, 11]  # October and November where your matches are
-    
-    calendar_html += f'<div class="year-section">'
-    
-    for month_num in months_to_show:
-        month_name = calendar.month_name[month_num]
-        days_in_month = calendar.monthrange(current_year, month_num)[1]
-        
-        month_events = events_df[
-            (pd.to_datetime(events_df['start_date']).dt.year == current_year) &
-            (pd.to_datetime(events_df['start_date']).dt.month == month_num)
-        ].copy()
-        
-        calendar_html += '<div class="month-container">'
-        calendar_html += f'<div class="month-label">{month_name.upper()} {current_year}</div>'
-        calendar_html += '<div class="days-grid">'
-        
-        for day in range(1, days_in_month + 1):
-            current_date = datetime.date(current_year, month_num, day)
-            
-            calendar_html += f'<div class="day-cell">'
-            calendar_html += f'<div style="font-weight: bold; margin-bottom: 5px;">{day}</div>'
-            
-            day_events = month_events[
-                pd.to_datetime(month_events['start_date']).dt.date == current_date
-            ]
-            
-            for _, event in day_events.iterrows():
-                if event['category'] == 'Match':
-                    event_text = str(event['event'])
-                    is_selected = "(Selected)" in event_text
-                    
-                    # Clean the team names
-                    if ' vs ' in event_text:
-                        teams = event_text.replace(" (Selected)", "").split(' vs ')
-                        home_team = teams[0].strip()
-                        away_team = teams[1].strip() if len(teams) > 1 else "Unknown"
-                    else:
-                        home_team = "Unknown"
-                        away_team = "Unknown"
-                    
-                    # Escape HTML to prevent encoding issues
-                    safe_home = html.escape(home_team)
-                    safe_away = html.escape(away_team)
-                    safe_time = html.escape(str(event.get('time', 'TBD')))
-                    
-                    event_class = "selected-match" if is_selected else "match-event"
-                    short_match = f"{safe_home[:10]} vs {safe_away[:10]}"
-                    
-                    calendar_html += f'''<div class="event-indicator {event_class}" 
-                                    title="{safe_home} vs {safe_away} at {safe_time}">
-                                    {short_match}
-                                    </div>'''
-            
-            calendar_html += '</div>'
-        
-        calendar_html += '</div></div>'
-    
-    calendar_html += '</div></div>'
-
-    # Show selected matches summary
-    if len(selected_matches) > 0:
-        st.subheader("Selected Matches Summary")
-        for _, match in selected_matches.iterrows():
-            match_date = pd.to_datetime(match['start_date']).date()
-            st.write(f"✅ {match['event']} on {match_date} at {match.get('time', 'TBD')}")
-
-    # Show which months contain selected matches
-    selected_months = selected_matches['start_date'].dt.month.unique() if len(selected_matches) > 0 else []
-    if len(selected_months) > 0:
-        month_names = [calendar.month_name[m] for m in selected_months]
-
-    # CSS for calendar (unchanged)
-    st.markdown("""
-        <style>
             .afc-calendar-wrapper { background-color: #e9ecef; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; }
             .year-section { margin-bottom: 30px; border: 2px solid #495057; border-radius: 10px; background-color: #f8f9fa; padding: 15px; display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 10px; }
             .year-header { background: linear-gradient(135deg, #343a40, #495057); color: white; text-align: center; font-weight: bold; padding: 15px; font-size: 24px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
@@ -2135,7 +2029,7 @@ def show_afc_replica_calendar_tab():
         </style>
     """, unsafe_allow_html=True)
 
-    # JavaScript for navigation (unchanged)
+    # JavaScript for navigation
     st.markdown("""
         <script>
             function handleMatchClick(homeTeam, awayTeam, weekNumber, matchDate, matchId) {
@@ -2167,22 +2061,25 @@ def show_afc_replica_calendar_tab():
     st.header("🏆 Competition Calendar")
     st.write("Enhanced calendar view with months side by side, vertically stacked days, and larger event indicators")
 
+    # Generate the main calendar
     calendar_html = '<div class="afc-calendar-wrapper">'
 
-    start_date = datetime.date(2025, 9, 1)  # Changed to include September and October
+    start_date = datetime.date(2025, 6, 1)  # Start from June to show all AFC events
     end_date = datetime.date(2026, 6, 30)
     current_year = start_date.year
+    
     while current_year <= end_date.year:
         calendar_html += f'<div class="year-section">'
         calendar_html += f'<div class="year-header">{current_year}</div>'
         
-        start_month = 9 if current_year == 2025 else 1  # Changed to start from September
+        start_month = 6 if current_year == 2025 else 1
         end_month = 6 if current_year == 2026 else 12
         
         for month_num in range(start_month, end_month + 1):
             month_name = calendar.month_name[month_num]
             days_in_month = calendar.monthrange(current_year, month_num)[1]
             
+            # Filter events for this month
             month_events = events_df[
                 (pd.to_datetime(events_df['start_date']).dt.year == current_year) &
                 (pd.to_datetime(events_df['start_date']).dt.month == month_num)
@@ -2211,9 +2108,11 @@ def show_afc_replica_calendar_tab():
                 calendar_html += f'<div class="day-number">{day}</div>'
                 calendar_html += f'<div class="day-name">{day_name}</div>'
                 
+                # Get events for this specific day
                 day_events = month_events[
                     pd.to_datetime(month_events['start_date']).dt.date == current_date
                 ]
+                
                 for _, event in day_events.iterrows():
                     if event['category'] == 'Match':
                         # Get week number directly from the event data if available
@@ -2257,6 +2156,7 @@ def show_afc_replica_calendar_tab():
                                         <div style="font-size: 8px; opacity: 0.9; margin-left: 5px;">W{week_number}</div>
                                         </div>'''
                     else:
+                        # AFC events
                         color = event_color_map.get(event['category'], '#6c757d')
                         calendar_html += f'''<div class="event-indicator afc-event" 
                                         style="background-color: {color}; max-height: 30px; overflow: hidden; display: flex; align-items: center;"
@@ -2276,6 +2176,7 @@ def show_afc_replica_calendar_tab():
     calendar_html += '</div>'
     st.markdown(calendar_html, unsafe_allow_html=True)
 
+    # Navigation handling
     if st.session_state.get('navigate_to_tab1', False):
         st.session_state.selected_week = st.session_state.get('selected_week', 1)
         match_teams = st.session_state.get('match_teams', [])
@@ -2285,13 +2186,21 @@ def show_afc_replica_calendar_tab():
         st.session_state.navigate_to_tab1 = False
         st.rerun()
 
-    # Analytics (unchanged)
-    analytics_df = pd.DataFrame([
-        {'Month': event['start_date'].strftime('%B'), 'Category': event['category'], 'Event': event['event']}
-        for _, event in events_df.iterrows()
-    ])
-    
-    if not analytics_df.empty:
+    # Show selected matches summary
+    if len(selected_matches) > 0:
+        st.subheader("Selected Matches Summary")
+        for _, match in selected_matches.iterrows():
+            match_date = pd.to_datetime(match['start_date']).date()
+            week_num = match.get('week', 'Unknown')
+            st.write(f"✅ {match['event']} on {match_date} at {match.get('time', 'TBD')} (Week {week_num})")
+
+    # Analytics
+    if not events_df.empty:
+        analytics_df = pd.DataFrame([
+            {'Month': event['start_date'].strftime('%B'), 'Category': event['category'], 'Event': event['event']}
+            for _, event in events_df.iterrows()
+        ])
+        
         st.header("📊 Calendar Analytics")
         col1, col2 = st.columns(2)
         
@@ -2314,19 +2223,6 @@ def show_afc_replica_calendar_tab():
                          color="Category", 
                          color_discrete_map=event_color_map)
             st.plotly_chart(fig2, use_container_width=True)
-
-        if 'schedule_df' in st.session_state:
-            schedule_df_copy = st.session_state.schedule_df.copy()
-            if 'afc_conflict' in schedule_df_copy.columns:
-                conflicts = schedule_df_copy[schedule_df_copy['afc_conflict'] == True]
-                if not conflicts.empty:
-                    st.warning(f"⚠️ {len(conflicts)} matches have conflicts with AFC events")
-                    with st.expander("View Conflicted Matches"):
-                        display_columns = ['home_team', 'away_team', 'date']
-                        if 'conflict_reason' in schedule_df_copy.columns:
-                            display_columns.append('conflict_reason')
-                        st.dataframe(schedule_df_copy[schedule_df_copy['afc_conflict'] == True][display_columns])
-
                         
 
 def get_base64_image(image_path):
@@ -2682,6 +2578,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
