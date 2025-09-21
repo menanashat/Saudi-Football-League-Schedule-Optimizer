@@ -1915,7 +1915,7 @@ def show_afc_replica_calendar_tab():
         "Tournament": "#6f42c1", "Qualifiers": "#198754", "Other": "#6c757d",
     }
 
-    afc_events_from_pdf = [
+    afc_events_from_image = [
     {"event": "FIFA Int'l Window (Men's)", "start_date": "2025-06-02", "end_date": "2025-06-10", "category": "FIFA International Window"},
     {"event": "AQ 9", "start_date": "2025-06-09", "end_date": "2025-06-09", "category": "Asian Cup Qualifiers"},
     {"event": "AQ 10", "start_date": "2025-06-10", "end_date": "2025-06-10", "category": "Asian Cup Qualifiers"},
@@ -2638,6 +2638,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
