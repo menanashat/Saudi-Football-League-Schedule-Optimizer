@@ -2006,10 +2006,37 @@ def show_afc_replica_calendar_tab():
     afc_df['start_date'] = pd.to_datetime(afc_df['start_date'])
     afc_df['end_date'] = pd.to_datetime(afc_df['end_date'])
 
-    # Initialize all_events with AFC events
+    # Initialize all_events with AFC events - EXPAND MULTI-DAY EVENTS
     all_events = []
-    for _, row in afc_df.iterrows(): 
-        all_events.append(row.to_dict())
+    
+    for _, row in afc_df.iterrows():
+        start_date = row['start_date'].date()
+        end_date = row['end_date'].date()
+        
+        # Create an event for each day in the range
+        current_date = start_date
+        while current_date <= end_date:
+            # Add day indicator for multi-day events
+            if start_date == end_date:
+                # Single day event
+                event_name = row['event']
+            else:
+                # Multi-day event - add day indicator
+                total_days = (end_date - start_date).days + 1
+                current_day = (current_date - start_date).days + 1
+                event_name = f"{row['event']} (Day {current_day}/{total_days})"
+            
+            all_events.append({
+                'event': event_name,
+                'start_date': pd.Timestamp(current_date),
+                'end_date': pd.Timestamp(current_date),
+                'category': row['category'],
+                'original_event': row['event'],  # Keep original name for reference
+                'is_multi_day': start_date != end_date,
+                'day_number': (current_date - start_date).days + 1 if start_date != end_date else None
+            })
+            
+            current_date += datetime.timedelta(days=1)
 
     # Add selected matches from scenario manager with week numbers
     scenario_manager = st.session_state.scenario_manager
@@ -2043,7 +2070,8 @@ def show_afc_replica_calendar_tab():
                 'time': selected_scenario.time,
                 'stadium': selected_scenario.stadium,
                 'city': selected_scenario.city,
-                'week': week_number  # Store the actual week number
+                'week': week_number,  # Store the actual week number
+                'is_multi_day': False
             })
 
     # Convert to DataFrame and handle dates
@@ -2056,6 +2084,12 @@ def show_afc_replica_calendar_tab():
     selected_matches = events_df[events_df['event'].str.contains('Selected', na=False)]
     st.write(f"Total events in calendar: {len(events_df)}")
     st.write(f"Selected matches in calendar: {len(selected_matches)}")
+    
+    # Show multi-day events info
+    multi_day_events = events_df[events_df.get('is_multi_day', False) == True]
+    if len(multi_day_events) > 0:
+        unique_multi_day = multi_day_events['original_event'].nunique() if 'original_event' in multi_day_events.columns else 0
+        st.write(f"Multi-day events expanded: {unique_multi_day} events across {len(multi_day_events)} days")
 
     # CSS for calendar
     st.markdown("""
@@ -2216,13 +2250,19 @@ def show_afc_replica_calendar_tab():
                                         <div style="font-size: 8px; opacity: 0.9; margin-left: 5px;">W{week_number}</div>
                                         </div>'''
                     else:
-                        # AFC events
+                        # AFC events - now includes multi-day events properly
                         color = event_color_map.get(event['category'], '#6c757d')
+                        event_name = event['event']
+                        original_name = event.get('original_event', event_name)
+                        
+                        # Truncate event name for display
+                        display_name = event_name[:35] + '...' if len(event_name) > 35 else event_name
+                        
                         calendar_html += f'''<div class="event-indicator afc-event" 
                                         style="background-color: {color}; max-height: 30px; overflow: hidden; display: flex; align-items: center;"
-                                        title="📅 {event['event']} ({event['category']})">
+                                        title="📅 {original_name} ({event['category']})">
                                         <span style="font-size: 10px; white-space: nowrap;">
-                                        {event['event'][:40]}{'...' if len(event['event']) > 40 else ''}
+                                        {display_name}
                                         </span>
                                         </div>'''
                 
@@ -2256,33 +2296,42 @@ def show_afc_replica_calendar_tab():
 
     # Analytics
     if not events_df.empty:
-        analytics_df = pd.DataFrame([
-            {'Month': event['start_date'].strftime('%B'), 'Category': event['category'], 'Event': event['event']}
-            for _, event in events_df.iterrows()
-        ])
+        # For analytics, use original events to avoid counting multi-day events multiple times
+        analytics_events = []
+        for _, event in events_df.iterrows():
+            if event.get('is_multi_day', False) and event.get('day_number', 1) > 1:
+                continue  # Skip duplicate days for multi-day events in analytics
+            analytics_events.append({
+                'Month': event['start_date'].strftime('%B'),
+                'Category': event['category'],
+                'Event': event.get('original_event', event['event'])
+            })
         
-        st.header("📊 Calendar Analytics")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            events_per_month = analytics_df.groupby("Month").size().reset_index(name="count")
-            month_order = [calendar.month_name[i] for i in range(1, 13)]
-            events_per_month["Month"] = pd.Categorical(events_per_month["Month"], categories=month_order, ordered=True)
-            events_per_month = events_per_month.sort_values("Month")
-            fig1 = px.bar(events_per_month, x="Month", y="count", 
-                         title="Total Events per Month", 
-                         labels={"count": "Number of Events"},
-                         color_discrete_sequence=['#0d6efd'])
-            st.plotly_chart(fig1, use_container_width=True)
+        if analytics_events:
+            analytics_df = pd.DataFrame(analytics_events)
+            
+            st.header("📊 Calendar Analytics")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                events_per_month = analytics_df.groupby("Month").size().reset_index(name="count")
+                month_order = [calendar.month_name[i] for i in range(1, 13)]
+                events_per_month["Month"] = pd.Categorical(events_per_month["Month"], categories=month_order, ordered=True)
+                events_per_month = events_per_month.sort_values("Month")
+                fig1 = px.bar(events_per_month, x="Month", y="count", 
+                             title="Total Events per Month", 
+                             labels={"count": "Number of Events"},
+                             color_discrete_sequence=['#0d6efd'])
+                st.plotly_chart(fig1, use_container_width=True)
 
-        with col2:
-            event_types_freq = analytics_df["Category"].value_counts().reset_index()
-            event_types_freq.columns = ["Category", "count"]
-            fig2 = px.pie(event_types_freq, values="count", names="Category", 
-                         title="Event Types Distribution", 
-                         color="Category", 
-                         color_discrete_map=event_color_map)
-            st.plotly_chart(fig2, use_container_width=True)
+            with col2:
+                event_types_freq = analytics_df["Category"].value_counts().reset_index()
+                event_types_freq.columns = ["Category", "count"]
+                fig2 = px.pie(event_types_freq, values="count", names="Category", 
+                             title="Event Types Distribution", 
+                             color="Category", 
+                             color_discrete_map=event_color_map)
+                st.plotly_chart(fig2, use_container_width=True)
                         
 
 def get_base64_image(image_path):
@@ -2638,6 +2687,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
