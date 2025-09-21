@@ -2529,7 +2529,7 @@ def main():
         if not selected_scenarios:
             st.info("No matches have been selected yet. Please select matches in the Weekly Scheduling tab.")
         else:
-            # Create a list of selected matches with their details
+            # Create a list of selected matches with their details and week numbers
             selected_matches = []
             
             for match_id, scenario_id in selected_scenarios.items():
@@ -2542,6 +2542,13 @@ def main():
                         break
                 
                 if selected_scenario:
+                    # Find the week number for this match_id
+                    week_number = None
+                    for week, match_ids in st.session_state.week_match_ids.items():
+                        if match_id in match_ids.values():
+                            week_number = week
+                            break
+                    
                     selected_matches.append({
                         'match_id': match_id,
                         'home_team': selected_scenario.home_team,
@@ -2549,20 +2556,18 @@ def main():
                         'date': selected_scenario.date,
                         'time': selected_scenario.time,
                         'stadium': selected_scenario.stadium,
-                        'city': selected_scenario.city
+                        'city': selected_scenario.city,
+                        'week': week_number  # Include week number for filtering
                     })
             
-            # Filter by current week if needed
+            # Get the currently selected week from the sidebar
             selected_week = st.session_state.selected_week
-            tab6_week_start = week_start_dates[st.session_state.get('week_start', start_week)]
-            tab6_week_end = week_start_dates[st.session_state.get('week_end', end_week)]
             
-            # Filter selected matches by current week
-            week_selected_matches = []
-            for match in selected_matches:
-                match_date_obj = datetime.datetime.strptime(match['date'], '%Y-%m-%d').date()
-                if tab6_week_start <= match_date_obj <= tab6_week_end:
-                    week_selected_matches.append(match)
+            # Filter selected matches by the SPECIFIC selected week only
+            week_selected_matches = [
+                match for match in selected_matches
+                if match['week'] == selected_week
+            ]
             
             # Apply team and city filters if any
             if selected_teams:
@@ -2579,6 +2584,15 @@ def main():
             
             if not week_selected_matches:
                 st.info(f"No selected matches found for Week {selected_week} with current filters.")
+                # Show how many matches are selected in other weeks for debugging
+                other_weeks_matches = [match for match in selected_matches if match['week'] != selected_week]
+                if other_weeks_matches:
+                    week_counts = {}
+                    for match in other_weeks_matches:
+                        week = match['week']
+                        week_counts[week] = week_counts.get(week, 0) + 1
+                    week_summary = ", ".join([f"Week {w}: {c} matches" for w, c in sorted(week_counts.items())])
+                    st.info(f"Matches selected in other weeks: {week_summary}")
             else:
                 st.markdown(f"<div style='text-align: center; font-size: 1.5rem; font-weight: bold; color: #1e3d59; margin: 2rem 0 1rem 0; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;'>Selected Matches - Week {selected_week}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div style='text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 1.5rem;'>{len(week_selected_matches)} matches confirmed for this week</div>", unsafe_allow_html=True)
@@ -2586,7 +2600,7 @@ def main():
                 # Sort by date and time
                 week_selected_matches.sort(key=lambda x: (x['date'], x['time']))
 
-                # Display only selected matches
+                # Display only selected matches for the specific week
                 for match in week_selected_matches:
                     home_team = match['home_team']
                     away_team = match['away_team']
@@ -2637,12 +2651,12 @@ def main():
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # Show summary
+                # Show summary with week-specific information
                 st.markdown(f"""
                 <div style="background-color: #e8f5e9; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin-top: 20px;">
                     <div style="font-weight: bold; color: #155724; font-size: 16px;">📊 Week {selected_week} Summary</div>
                     <div style="color: #155724; margin-top: 5px;">
-                        • Total confirmed matches: {len(week_selected_matches)}<br>
+                        • Total confirmed matches for Week {selected_week}: {len(week_selected_matches)}<br>
                         • All matches have been scheduled and confirmed<br>
                         • Ready for matchday execution
                     </div>
@@ -2665,11 +2679,11 @@ def main():
                     # Clear the selected match after displaying
                     st.session_state.selected_match_id = None
                     st.session_state.active_tab = "Weekly Calendar"
-        # else:
-        #     st.info("Please generate a schedule first using the 'Schedule Generator' tab to enable matchday simulation.")
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
