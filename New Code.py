@@ -165,19 +165,64 @@ class ScenarioManager:
 def is_team_available(team, match_date):
     """
     Check if a team is available on a given date, including a 2-day buffer.
-    Returns True if available, False if unavailable.
+    Returns tuple: (is_available, conflict_reason)
+    
+    Args:
+        team (str): Name of the team to check
+        match_date (datetime.date): Date to check availability for
+    
+    Returns:
+        tuple: (bool, str) - (is_available, conflict_reason)
+               If available: (True, "")
+               If not available: (False, "will play at {date}")
     """
+    TEAM_UNAVAILABILITY = {
+        'Al-Ittihad': [
+            datetime.date(2025, 9, 15), datetime.date(2025, 9, 30), datetime.date(2025, 10, 20),
+            datetime.date(2025, 11, 4), datetime.date(2025, 11, 24), datetime.date(2025, 12, 23),
+            datetime.date(2026, 2, 10), datetime.date(2026, 2, 17)
+        ],
+        'Al-Ahli': [
+            datetime.date(2025, 9, 15), datetime.date(2025, 9, 29), datetime.date(2025, 10, 20),
+            datetime.date(2025, 11, 4), datetime.date(2025, 11, 24), datetime.date(2025, 12, 22),
+            datetime.date(2026, 2, 9), datetime.date(2026, 2, 16)
+        ],
+        'Al-Hilal': [
+            datetime.date(2025, 9, 16), datetime.date(2025, 9, 29), datetime.date(2025, 10, 21),
+            datetime.date(2025, 11, 3), datetime.date(2025, 11, 25), datetime.date(2025, 12, 22),
+            datetime.date(2026, 2, 9), datetime.date(2026, 2, 16)
+        ],
+        'Al-Nassr': [
+            datetime.date(2025, 9, 17), datetime.date(2025, 10, 1), datetime.date(2025, 10, 22),
+            datetime.date(2025, 11, 5), datetime.date(2025, 11, 26), datetime.date(2025, 12, 24)
+        ],
+        'Al-Shabab': [
+            datetime.date(2025, 10, 1), datetime.date(2025, 10, 21), datetime.date(2025, 11, 5),
+            datetime.date(2025, 12, 24), datetime.date(2026, 2, 1), datetime.date(2026, 2, 17)
+        ]
+    }
+    
     unavailable_dates = TEAM_UNAVAILABILITY.get(team, [])
-    # Apply a 2-day buffer around each unavailability date
-    unavailable_with_buffer = set()
-    for date in unavailable_dates:
-        unavailable_with_buffer.add(date)
-        unavailable_with_buffer.add(date - datetime.timedelta(days=2))
-        unavailable_with_buffer.add(date - datetime.timedelta(days=1))
-        unavailable_with_buffer.add(date + datetime.timedelta(days=1))
-        unavailable_with_buffer.add(date + datetime.timedelta(days=2))
+    
+    # First check if the exact match_date conflicts with any unavailable date
+    for unavailable_date in unavailable_dates:
+        if match_date == unavailable_date:
+            return False, f"has scheduled match on {unavailable_date.strftime('%Y-%m-%d')}"
+    
+    # Apply a 2-day buffer around each unavailability date and find the closest conflict
+    for unavailable_date in unavailable_dates:
+        buffer_dates = [
+            unavailable_date - datetime.timedelta(days=2),
+            unavailable_date - datetime.timedelta(days=1),
+            unavailable_date + datetime.timedelta(days=1),
+            unavailable_date + datetime.timedelta(days=2)
+        ]
+        
+        if match_date in buffer_dates:
+            return False, f"will play at {unavailable_date.strftime('%Y-%m-%d')}"
+    
+    return True, ""
 
-    return match_date not in unavailable_with_buffer
 
 TEAM_UNAVAILABILITY = {
     'Al-Ittihad': [
@@ -259,75 +304,43 @@ def check_rest_period(schedule, team, match_date):
                 return False
     return True
 
-
-
-
-
-
-
-
 @lru_cache(maxsize=1000)
 def get_prayer_times_unified(city, date, prayer='all'):
     """
     Fetch prayer times for a given city and date from the Aladhan API using Umm Al-Qura method.
     Map 'Unknown' city to 'Riyadh' and handle invalid or future dates with fallbacks.
     """
-    # Default to Riyadh if city is 'Unknown'
     if city == 'Unknown':
         city = 'Riyadh'
         st.warning(f"City 'Unknown' detected. Defaulting to 'Riyadh' for prayer times.")
 
-    # Validate date
     if date is None:
         date = datetime.date.today()
         st.warning(f"No date provided for prayer times. Using today's date: {date}")
 
-    # City mapping for Aladhan API
     city_mapping = {
-        'Riyadh': 'Riyadh',
-        'Jeddah': 'Jeddah',
-        'Dammam': 'Dammam',
-        'Buraidah': 'Buraidah',
-        'Al-Mubarraz': 'Al Mubarraz',
-        'Khamis Mushait': 'Khamis Mushait',
-        'Abha': 'Abha',
-        'Al Khobar': 'Al Khobar',
-        'Saihat': 'Saihat',
-        'Al Majmaah': 'Al Majmaah',
-        'Ar Rass': 'Ar Rass',
-        'Unaizah': 'Unaizah',
-        'NEOM': 'Tabuk'  # NEOM may not be in API, use closest city
+        'Riyadh': 'Riyadh', 'Jeddah': 'Jeddah', 'Dammam': 'Dammam', 'Buraidah': 'Buraidah',
+        'Al-Mubarraz': 'Al Mubarraz', 'Khamis Mushait': 'Khamis Mushait', 'Abha': 'Abha',
+        'Al Khobar': 'Al Khobar', 'Saihat': 'Saihat', 'Al Majmaah': 'Al Majmaah',
+        'Ar Rass': 'Ar Rass', 'Unaizah': 'Unaizah', 'NEOM': 'Tabuk'
     }
 
-    # Fallback prayer times for Jeddah in October (approximate, based on Umm Al-Qura)
     jeddah_fallback_times = {
-        'fajr': '04:45',
-        'dhuhr': '12:00',
-        'asr': '15:30',
-        'maghrib': '17:45',
-        'isha': '19:15'
+        'fajr': '04:45', 'dhuhr': '12:00', 'asr': '15:30', 'maghrib': '17:45', 'isha': '19:15'
     }
 
     api_city = city_mapping.get(city, city)
     date_str = date.strftime('%d-%m-%Y') if isinstance(date, (datetime.date, datetime.datetime)) else str(date)
 
-    # Check if date is in the future (beyond 2025)
     current_date = datetime.date.today()
     if date > current_date + datetime.timedelta(days=365):
         st.warning(f"Date {date_str} is too far in the future for Aladhan API. Using fallback times for {city}.")
         if city == 'Jeddah':
             return {
                 'timings': jeddah_fallback_times,
-                'minutes': {
-                    'fajr_minutes': time_string_to_minutes(jeddah_fallback_times['fajr']),
-                    'dhuhr_minutes': time_string_to_minutes(jeddah_fallback_times['dhuhr']),
-                    'asr_minutes': time_string_to_minutes(jeddah_fallback_times['asr']),
-                    'maghrib_minutes': time_string_to_minutes(jeddah_fallback_times['maghrib']),
-                    'isha_minutes': time_string_to_minutes(jeddah_fallback_times['isha'])
-                }
+                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
             }
-        else:
-            return {'error': f'No fallback times available for {city} on future date {date_str}'}
+        return {'error': f'No fallback times available for {city} on future date {date_str}'}
 
     try:
         url = f"http://api.aladhan.com/v1/timingsByCity/{date_str}?city={api_city}&country=Saudi%20Arabia&method=4"
@@ -335,29 +348,20 @@ def get_prayer_times_unified(city, date, prayer='all'):
         data = response.json()
 
         if response.status_code != 200 or data.get('code') != 200:
-            st.error(f"API request failed for {city} on {date_str}: Status {response.status_code}, Response: {data.get('status', 'Unknown error')}")
+            st.error(f"API request failed for {city} on {date_str}: Status {response.status_code}")
             if city == 'Jeddah':
-                st.warning(f"Using fallback prayer times for Jeddah on {date_str} (Umm Al-Qura method).")
+                st.warning(f"Using fallback prayer times for Jeddah on {date_str}.")
                 return {
                     'timings': jeddah_fallback_times,
-                    'minutes': {
-                        'fajr_minutes': time_string_to_minutes(jeddah_fallback_times['fajr']),
-                        'dhuhr_minutes': time_string_to_minutes(jeddah_fallback_times['dhuhr']),
-                        'asr_minutes': time_string_to_minutes(jeddah_fallback_times['asr']),
-                        'maghrib_minutes': time_string_to_minutes(jeddah_fallback_times['maghrib']),
-                        'isha_minutes': time_string_to_minutes(jeddah_fallback_times['isha'])
-                    }
+                    'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
                 }
             return {'error': f'API request failed for {city} on {date_str}'}
 
         timings = data['data']['timings']
         prayer_times = {
             'timings': {
-                'fajr': timings['Fajr'],
-                'dhuhr': timings['Dhuhr'],
-                'asr': timings['Asr'],
-                'maghrib': timings['Maghrib'],
-                'isha': timings['Isha']
+                'fajr': timings['Fajr'], 'dhuhr': timings['Dhuhr'], 'asr': timings['Asr'],
+                'maghrib': timings['Maghrib'], 'isha': timings['Isha']
             },
             'minutes': {
                 'fajr_minutes': time_string_to_minutes(timings['Fajr']),
@@ -372,81 +376,133 @@ def get_prayer_times_unified(city, date, prayer='all'):
     except Exception as e:
         st.error(f"Unexpected error fetching prayer times for {city} on {date_str}: {e}")
         if city == 'Jeddah':
-            st.warning(f"Using fallback prayer times for Jeddah on {date_str} (Umm Al-Qura method).")
+            st.warning(f"Using fallback prayer times for Jeddah on {date_str}.")
             return {
                 'timings': jeddah_fallback_times,
-                'minutes': {
-                    'fajr_minutes': time_string_to_minutes(jeddah_fallback_times['fajr']),
-                    'dhuhr_minutes': time_string_to_minutes(jeddah_fallback_times['dhuhr']),
-                    'asr_minutes': time_string_to_minutes(jeddah_fallback_times['asr']),
-                    'maghrib_minutes': time_string_to_minutes(jeddah_fallback_times['maghrib']),
-                    'isha_minutes': time_string_to_minutes(jeddah_fallback_times['isha'])
-                }
+                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
             }
         return {'error': f'Error fetching prayer times: {str(e)}'}
 
-# add this to Full schulde and 2 day rest
+
+def time_string_to_minutes(time_str):
+    """Convert time string (HH:MM) to minutes since midnight."""
+    try:
+        hours, minutes = map(int, time_str.split(":"))
+        return hours * 60 + minutes
+    except ValueError:
+        return 0
+
+def minutes_to_time_string(minutes):
+    """Convert minutes since midnight to time string (HH:MM)."""
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours:02d}:{mins:02d}"
+
+
 def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     """
-    Calculates match start times based on Maghrib and Isha prayer times for a given city and date.
-    Returns a dict with 'maghrib_time', 'isha_time', 'maghrib_slots', 'isha_slots'.
+    Calculates three match start times per day: Maghrib - 52 min, Isha - 52 min, and 21:00.
+    Ensures matches avoid prayer times or place prayers in halftime.
     """
-    # Default time slots
-    default_maghrib_slots = {'Thursday': '19:00', 'Friday': '16:00', 'Saturday': '12:00'}
-    default_isha_slots = {'Thursday': '21:00', 'Friday': '18:00', 'Saturday': '16:00'}
+    result = {
+        "asr_time": None,
+        "maghrib_time": None,
+        "isha_time": None,
+        "match_slots": []
+    }
 
-    # Check teams_data for custom slots
-    maghrib_slots = default_maghrib_slots
-    isha_slots = default_isha_slots
-    if teams_data is not None and 'maghrib_slots' in teams_data.columns and 'isha_slots' in teams_data.columns:
-        city_data = teams_data[teams_data['city'] == city]
-        if not city_data.empty:
-            maghrib_slots = city_data['maghrib_slots'].iloc[0] if pd.notna(city_data['maghrib_slots'].iloc[0]) else default_maghrib_slots
-            isha_slots = city_data['isha_slots'].iloc[0] if pd.notna(city_data['isha_slots'].iloc[0]) else default_isha_slots
-
-    try:
-        prayer_data = get_prayer_times_unified(city, match_date, prayer=None)
-        
-        if 'error' not in prayer_data and 'timings' in prayer_data:
-            maghrib_time_str = prayer_data['timings'].get('maghrib')
-            isha_time_str = prayer_data['timings'].get('isha')
-            st.write(f"API prayer times for {city} on {match_date}: Maghrib {maghrib_time_str}, Isha {isha_time_str}")
-        else:
-            maghrib_time_str = None
-            isha_time_str = None
-            st.warning(f"API error or no timings for {city} on {match_date}: {prayer_data.get('error', 'No timings')}")
-        
-        if not maghrib_time_str or not isha_time_str:
-            st.warning(f"Using default prayer times for {city} on {match_date}.")
-            maghrib_time_str = "17:45" if city == 'Jeddah' else "17:48"
-            isha_time_str = "19:15" if city == 'Jeddah' else "19:18"
-        
-        # Validate time format
-        try:
-            maghrib_hour, maghrib_minute = map(int, maghrib_time_str.split(":"))
-            isha_hour, isha_minute = map(int, isha_time_str.split(":"))
-            return {
-                "maghrib_time": maghrib_time_str,
-                "isha_time": isha_time_str,
-                "maghrib_slots": maghrib_slots,
-                "isha_slots": isha_slots
-            }
-        except ValueError as e:
-            st.error(f"Error parsing prayer times for {city} on {match_date}: {e}. Using defaults.")
-            return {
-                "maghrib_time": "17:45" if city == 'Jeddah' else "17:48",
-                "isha_time": "19:15" if city == 'Jeddah' else "19:18",
-                "maghrib_slots": maghrib_slots,
-                "isha_slots": isha_slots
-            }
-    except Exception as e:
-        st.error(f"Unexpected error in API call for {city} on {match_date}: {e}. Using defaults.")
-        return {
+    prayer_data = get_prayer_times_unified(city, match_date)
+    if 'error' in prayer_data:
+        st.error(f"Error fetching prayer times for {city} on {match_date}: {prayer_data['error']}")
+        result.update({
+            "asr_time": "15:30" if city == 'Jeddah' else "15:33",
             "maghrib_time": "17:45" if city == 'Jeddah' else "17:48",
-            "isha_time": "19:15" if city == 'Jeddah' else "19:18",
-            "maghrib_slots": maghrib_slots,
-            "isha_slots": isha_slots
-        }
+            "isha_time": "19:15" if city == 'Jeddah' else "19:18"
+        })
+    else:
+        result.update({
+            "asr_time": prayer_data['timings']['asr'],
+            "maghrib_time": prayer_data['timings']['maghrib'],
+            "isha_time": prayer_data['timings']['isha']
+        })
+
+    asr_minutes = time_string_to_minutes(result["asr_time"])
+    maghrib_minutes = time_string_to_minutes(result["maghrib_time"])
+    isha_minutes = time_string_to_minutes(result["isha_time"])
+
+    # Generate slots: Maghrib - 52 min, Isha - 52 min, 21:00
+    maghrib_slot = minutes_to_time_string(maghrib_minutes - 52)
+    isha_slot = minutes_to_time_string(isha_minutes - 52)
+    mandatory_slot = "21:00"
+    candidate_slots = [maghrib_slot, isha_slot, mandatory_slot]
+
+    valid_slots = []
+    for start_time in candidate_slots:
+        start_minutes = time_string_to_minutes(start_time)
+        end_minutes = start_minutes + 120  # 2-hour match
+        prayer_conflict = False
+        for prayer_minutes in [asr_minutes, maghrib_minutes, isha_minutes]:
+            if start_minutes <= prayer_minutes <= end_minutes:
+                halftime_start = start_minutes + 55
+                halftime_end = start_minutes + 65
+                if not (halftime_start <= prayer_minutes <= halftime_end):
+                    prayer_conflict = True
+                    break
+        if not prayer_conflict:
+            valid_slots.append(start_time)
+
+    # Ensure 21:00 is always included unless it conflicts
+    mandatory_start = time_string_to_minutes(mandatory_slot)
+    mandatory_end = mandatory_start + 120
+    mandatory_conflict = False
+    for prayer_minutes in [asr_minutes, maghrib_minutes, isha_minutes]:
+        if mandatory_start <= prayer_minutes <= mandatory_end:
+            halftime_start = mandatory_start + 55
+            halftime_end = mandatory_start + 65
+            if not (halftime_start <= prayer_minutes <= halftime_end):
+                mandatory_conflict = True
+                break
+    if not mandatory_conflict:
+        if mandatory_slot not in valid_slots:
+            valid_slots.append(mandatory_slot)
+    else:
+        # Try an alternative slot if 21:00 conflicts
+        alternative_slot = minutes_to_time_string(isha_minutes - 60)  # Try Isha - 60 min as fallback
+        alternative_start = time_string_to_minutes(alternative_slot)
+        alternative_end = alternative_start + 120
+        alternative_conflict = False
+        for prayer_minutes in [asr_minutes, maghrib_minutes, isha_minutes]:
+            if alternative_start <= prayer_minutes <= alternative_end:
+                halftime_start = alternative_start + 55
+                halftime_end = alternative_start + 65
+                if not (halftime_start <= prayer_minutes <= halftime_end):
+                    alternative_conflict = True
+                    break
+        if not alternative_conflict and alternative_slot not in valid_slots:
+            valid_slots.append(alternative_slot)
+        else:
+            st.warning(f"Cannot schedule 21:00 or alternative slot for {city} on {match_date} due to prayer conflicts.")
+
+    # Ensure exactly three slots
+    if len(valid_slots) < 3:
+        # Try adding a slot in the Asr-Maghrib gap if 2 hours available
+        if asr_minutes + 120 < maghrib_minutes:
+            gap_start = asr_minutes + 30
+            gap_time = minutes_to_time_string(gap_start)
+            gap_end = gap_start + 120
+            if gap_time not in valid_slots and not any(gap_start <= p <= gap_end for p in [asr_minutes, maghrib_minutes, isha_minutes]):
+                valid_slots.append(gap_time)
+        # Fill remaining slots with candidates if needed
+        for candidate in [maghrib_slot, isha_slot]:
+            if len(valid_slots) >= 3:
+                break
+            if candidate not in valid_slots:
+                valid_slots.append(candidate)
+
+    result["match_slots"] = sorted(valid_slots, key=time_string_to_minutes)[:3]
+    st.write(f"Match slots for {city} on {match_date}: {result['match_slots']}")
+    return result
+
 def time_string_to_minutes(time_str: str) -> int:
     """Convert HH:MM format to minutes since midnight"""
     hours, minutes = map(int, time_str.split(':'))
@@ -1091,10 +1147,11 @@ def validate_and_redistribute_matches(matches_from_excel, week_start_dates, matc
         st.write(f"Redistributed week {week}: {[(h, a, d.strftime('%Y-%m-%d')) for h, a, d in redistributed[week]]}")
     return redistributed
 
-
 def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week, showing available scenarios (even if zero), with day count tracking.
+    Includes specific conflict reasons (e.g., international break or conflicting team) when unavailable.
+    Handles cases where is_team_available returns a boolean or a tuple.
     """
     st.markdown(f"### Week {week_number} Match Scenarios")
     if not matches_from_excel:
@@ -1194,11 +1251,44 @@ def display_week_scenarios(week_number, matches_from_excel):
             st.warning(f"No scenarios generated for {home} vs {away}. Check generation or filters.")
             continue
 
-        available_scenarios = [
-            s for s in scenarios
-            if datetime.datetime.strptime(s.date, '%Y-%m-%d').date() in days and
-            (s.is_available or st.session_state.day_counts.get(datetime.datetime.strptime(s.date, '%Y-%m-%d').date(), 0) < 3)
-        ]
+        available_scenarios = []
+        for s in scenarios:
+            scenario_date = datetime.datetime.strptime(s.date, '%Y-%m-%d').date()
+            if scenario_date not in days:
+                continue
+            
+            # Handle is_team_available return value (boolean or tuple)
+            home_result = is_team_available(home, scenario_date)
+            away_result = is_team_available(away, scenario_date)
+            
+            # Initialize defaults
+            home_available = home_result
+            home_conflict_reason = "Team conflict (unknown reason)"
+            away_available = away_result
+            away_conflict_reason = "Team conflict (unknown reason)"
+            
+            # Check if result is a tuple (is_available, conflict_reason)
+            if isinstance(home_result, tuple) and len(home_result) == 2:
+                home_available, home_conflict_reason = home_result
+            if isinstance(away_result, tuple) and len(away_result) == 2:
+                away_available, away_conflict_reason = away_result
+            
+            is_available = home_available and away_available
+            
+            # Create detailed conflict reason
+            conflict_parts = []
+            if not home_available:
+                conflict_parts.append(f"{home}: {home_conflict_reason}")
+            if not away_available:
+                conflict_parts.append(f"{away}: {away_conflict_reason}")
+            
+            conflict_reason = "; ".join(conflict_parts) if conflict_parts else ""
+            
+            # Update scenario availability and store conflict reason
+            s.is_available = is_available
+            s.conflict_reason = conflict_reason
+            if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
+                available_scenarios.append(s)
 
         st.subheader(f"{home} vs {away}")
         if not available_scenarios:
@@ -1215,7 +1305,7 @@ def display_week_scenarios(week_number, matches_from_excel):
             with cols[i % 3]:
                 card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
                 border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
-                availability_message = "" if scenario.is_available else "<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: Team conflict</div>"
+                availability_message = f"<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: {scenario.conflict_reason}</div>" if not scenario.is_available else ""
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 st.markdown(
@@ -1293,6 +1383,28 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
+
+
+def get_teams_for_match(match_id):
+    """
+    Helper function to get team names for a given match_id.
+    You'll need to implement this based on your data structure.
+    
+    Args:
+        match_id: The match identifier
+    
+    Returns:
+        tuple: (home_team, away_team) or None if not found
+    """
+    # Implementation depends on how you store match information
+    # This is just an example structure
+    if hasattr(st.session_state, 'week_match_ids'):
+        for week, matches in st.session_state.week_match_ids.items():
+            for (home, away), m_id in matches.items():
+                if m_id == match_id:
+                    return (home, away)
+    return None
+
 
 def extract_team_city_data(df):
     return df[['team', 'home_city', 'home_stadium', 'strength']].copy()
@@ -1383,7 +1495,21 @@ def is_international_stop_day(check_date, afc_df):
                     continue
     return False, ""
 
+
+
+
+def time_string_to_minutes(time_str):
+    """Convert time string (HH:MM) to minutes since midnight."""
+    try:
+        hours, minutes = map(int, time_str.split(":"))
+        return hours * 60 + minutes
+    except ValueError:
+        return 0
 def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model, profit_model, models_loaded, start_date, end_date, selected_teams=None, selected_cities=None, selected_time_filters=None, matches_per_week=9, matches_from_excel=None):
+    """
+    Generates up to 9 match scenarios per match for weeks 7 to 34, using three time slots per day (16:00, Maghrib - 52 min, Isha - 44 min, with 21:00 mandatory),
+    incorporating Asr, Maghrib, and Isha prayer times, ensuring matches avoid prayer times or place prayers during halftime.
+    """
     st.write("Starting scenario generation for weeks 7 to 34...")
     scenario_manager = st.session_state.scenario_manager
     scenario_manager.scenarios = {}
@@ -1405,39 +1531,19 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
         weeks_to_process = list(range(7, 35))
 
     week_start_dates = {
-        7: datetime.date(2025, 10, 30),  # Thursday
-        8: datetime.date(2025, 11, 6),   # Thursday
-        9: datetime.date(2025, 11, 21),  # Friday
-        10: datetime.date(2025, 12, 19), # Friday
-        11: datetime.date(2025, 12, 25), # Thursday
-        12: datetime.date(2025, 12, 29), # Monday
-        13: datetime.date(2026, 1, 2),   # Friday
-        14: datetime.date(2026, 1, 8),   # Thursday
-        15: datetime.date(2026, 1, 12),  # Monday
-        16: datetime.date(2026, 1, 16),  # Friday
-        17: datetime.date(2026, 1, 20),  # Tuesday
-        18: datetime.date(2026, 1, 24),  # Saturday
-        19: datetime.date(2026, 1, 28),  # Wednesday
-        20: datetime.date(2026, 2, 1),   # Sunday
-        21: datetime.date(2026, 2, 5),   # Thursday
-        22: datetime.date(2026, 2, 12),  # Thursday
-        23: datetime.date(2026, 2, 19),  # Thursday
-        24: datetime.date(2026, 2, 26),  # Thursday
-        25: datetime.date(2026, 3, 5),   # Thursday
-        26: datetime.date(2026, 3, 12),  # Thursday
-        27: datetime.date(2026, 4, 3),   # Friday
-        28: datetime.date(2026, 4, 9),   # Thursday
-        29: datetime.date(2026, 4, 23),  # Thursday
-        30: datetime.date(2026, 4, 28),  # Tuesday
-        31: datetime.date(2026, 5, 2),   # Saturday
-        32: datetime.date(2026, 5, 7),   # Thursday
-        33: datetime.date(2026, 5, 13),  # Wednesday
-        34: datetime.date(2026, 5, 21),  # Thursday
+        7: datetime.date(2025, 10, 30), 8: datetime.date(2025, 11, 6), 9: datetime.date(2025, 11, 21),
+        10: datetime.date(2025, 12, 19), 11: datetime.date(2025, 12, 25), 12: datetime.date(2025, 12, 29),
+        13: datetime.date(2026, 1, 2), 14: datetime.date(2026, 1, 8), 15: datetime.date(2026, 1, 12),
+        16: datetime.date(2026, 1, 16), 17: datetime.date(2026, 1, 20), 18: datetime.date(2026, 1, 24),
+        19: datetime.date(2026, 1, 28), 20: datetime.date(2026, 2, 1), 21: datetime.date(2026, 2, 5),
+        22: datetime.date(2026, 2, 12), 23: datetime.date(2026, 2, 19), 24: datetime.date(2026, 2, 26),
+        25: datetime.date(2026, 3, 5), 26: datetime.date(2026, 3, 12), 27: datetime.date(2026, 4, 3),
+        28: datetime.date(2026, 4, 9), 29: datetime.date(2026, 4, 23), 30: datetime.date(2026, 4, 28),
+        31: datetime.date(2026, 5, 2), 32: datetime.date(2026, 5, 7), 33: datetime.date(2026, 5, 13),
+        34: datetime.date(2026, 5, 21)
     }
 
-    # Redistribute to enforce limits
     redistributed_matches = validate_and_redistribute_matches(matches_from_excel, week_start_dates)
-
     st.session_state.week_match_ids = {week: {} for week in weeks_to_process}
 
     for week in weeks_to_process:
@@ -1450,27 +1556,6 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
 
     teams_data_normalized = teams_data.copy()
     teams_data_normalized['team_lower'] = teams_data_normalized['team'].str.lower()
-
-    season_end_date = datetime.date(2026, 5, 21)  # Extended to cover all weeks up to 34
-
-    default_time_slots = [
-        ('Monday', '18:00'), ('Monday', '19:00'), ('Monday', '21:00'),
-        ('Tuesday', '18:00'), ('Tuesday', '19:00'), ('Tuesday', '21:00'),
-        ('Wednesday', '18:00'), ('Wednesday', '19:00'), ('Wednesday', '21:00'),
-        ('Thursday', '18:00'), ('Thursday', '19:00'), ('Thursday', '21:00'),
-        ('Friday', '16:00'), ('Friday', '18:00'), ('Friday', '21:00'),
-        ('Saturday', '12:00'), ('Saturday', '16:00'), ('Saturday', '21:00'),
-        ('Sunday', '12:00'), ('Sunday', '16:00'), ('Sunday', '21:00')
-    ]
-    extra_time_slots = [
-        ('Monday', '15:00'), ('Monday', '17:00'),
-        ('Tuesday', '15:00'), ('Tuesday', '17:00'),
-        ('Wednesday', '15:00'), ('Wednesday', '17:00'),
-        ('Thursday', '15:00'), ('Thursday', '17:00'),
-        ('Friday', '15:00'), ('Friday', '17:00'),
-        ('Saturday', '15:00'), ('Saturday', '17:00'),
-        ('Sunday', '15:00'), ('Sunday', '17:00')
-    ]
 
     for week in weeks_to_process:
         thu_this_week = week_start_dates.get(week)
@@ -1504,7 +1589,6 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                 continue
 
             home_team_info = teams_data_normalized[teams_data_normalized['team_lower'] == home_team.lower()].iloc[0]
-            away_team_info = teams_data_normalized[teams_data_normalized['team_lower'] == away_team.lower()].iloc[0]
             actual_city = home_team_info['city']
             actual_stadium = get_alternative_stadium(home_team_info['stadium'], preferred_date)
 
@@ -1517,98 +1601,40 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                 if day not in available_days or match_scenarios_total >= 9:
                     continue
                 day_of_week = day_names[days.index(day)]
-                applicable_slots = [(dow, time) for dow, time in default_time_slots if dow == day_of_week]
+
+                calculated = calculate_match_times_for_city_and_date(actual_city, day, teams_data_normalized)
+                match_slots = calculated.get('match_slots', ['16:00', '17:18', '21:00'])
+                asr_time_str = calculated.get('asr_time', '15:30' if actual_city == 'Jeddah' else '15:33')
+                maghrib_time_str = calculated.get('maghrib_time', '17:45' if actual_city == 'Jeddah' else '17:48')
+                isha_time_str = calculated.get('isha_time', '19:15' if actual_city == 'Jeddah' else '19:18')
+
                 is_available = is_team_available(home_team, day) and is_team_available(away_team, day)
-                for _, initial_time in applicable_slots:
-                    if initial_time in used_slots_per_day[day] or match_scenarios_total >= 9:
+                slots_for_day = [s for s in match_slots if s not in used_slots_per_day[day]]
+
+                for slot_time in slots_for_day:
+                    if match_scenarios_total >= 9:
+                        break
+                    try:
+                        slot_hour, slot_minute = map(int, slot_time.split(":"))
+                        slot_datetime = datetime.datetime(day.year, day.month, day.day, slot_hour, slot_minute)
+                    except ValueError:
+                        st.error(f"Invalid time format for slot {slot_time}. Skipping.")
                         continue
 
-                    calculated = calculate_match_times_for_city_and_date(actual_city, day, teams_data_normalized)
-                    isha_time_str = calculated.get('isha_time', 'N/A')
-                    maghrib_time_str = calculated.get('maghrib_time', 'N/A')
-                    maghrib_slots = calculated.get('maghrib_slots', {
-                        'Monday': '19:00',
-                        'Tuesday': '19:00',
-                        'Wednesday': '19:00',
-                        'Thursday': '19:00',
-                        'Friday': '16:00',
-                        'Saturday': '12:00',
-                        'Sunday': '12:00'
-                    })
-                    isha_slots = calculated.get('isha_slots', {
-                        'Monday': '21:00',
-                        'Tuesday': '21:00',
-                        'Wednesday': '21:00',
-                        'Thursday': '21:00',
-                        'Friday': '18:00',
-                        'Saturday': '16:00',
-                        'Sunday': '16:00'
-                    })
-
-                    default_maghrib = "17:45" if actual_city == 'Jeddah' else "17:48"
-                    default_isha = "19:15" if actual_city == 'Jeddah' else "19:18"
-
-                    if isha_time_str == 'N/A' or maghrib_time_str == 'N/A':
-                        st.warning(f"Prayer times missing for {actual_city} on {day}. Using defaults (Maghrib: {default_maghrib}, Isha: {default_isha}).")
-                        maghrib_time_str = default_maghrib
-                        isha_time_str = default_isha
-
-                    try:
-                        maghrib_hour, maghrib_minute = map(int, maghrib_time_str.split(":"))
-                        maghrib_datetime = datetime.datetime(day.year, day.month, day.day, maghrib_hour, maghrib_minute)
-                        isha_hour, isha_minute = map(int, isha_time_str.split(":"))
-                        isha_datetime = datetime.datetime(day.year, day.month, day.day, isha_hour, isha_minute)
-                    except ValueError as e:
-                        st.error(f"Error parsing prayer times for {actual_city} on {day}: {e}. Using defaults.")
-                        maghrib_hour, maghrib_minute = map(int, default_maghrib.split(":"))
-                        maghrib_datetime = datetime.datetime(day.year, day.month, day.day, maghrib_hour, maghrib_minute)
-                        isha_hour, isha_minute = map(int, default_isha.split(":"))
-                        isha_datetime = datetime.datetime(day.year, day.month, day.day, isha_hour, isha_minute)
-
-                    proposed_start_dt = datetime.datetime.combine(day, datetime.datetime.strptime(initial_time, '%H:%M').time())
-                    duration = datetime.timedelta(minutes=52)
-                    proposed_end_dt = proposed_start_dt + duration
-                    buffer = datetime.timedelta(minutes=30)
-
-                    if initial_time == '21:00':
-                        start_time = '21:00'
+                    prayer_key = 'None'
+                    prayer_time_str = 'N/A'
+                    slot_minutes = time_string_to_minutes(slot_time)
+                    maghrib_slot = time_string_to_minutes(maghrib_time_str) - 52
+                    isha_slot = time_string_to_minutes(isha_time_str) - 44
+                    if slot_time == '21:00' or abs(slot_minutes - isha_slot) < 5:
+                        prayer_key = 'Isha'
+                        prayer_time_str = isha_time_str
+                    elif abs(slot_minutes - maghrib_slot) < 5:
+                        prayer_key = 'Maghrib'
+                        prayer_time_str = maghrib_time_str
+                    elif slot_time == '16:00':
                         prayer_key = 'None'
                         prayer_time_str = 'N/A'
-                    elif initial_time == maghrib_slots.get(day_of_week):
-                        if proposed_end_dt > maghrib_datetime - buffer:
-                            start_dt = maghrib_datetime - duration - buffer
-                            start_time = start_dt.strftime('%H:%M')
-                            prayer_key = 'Maghrib'
-                            prayer_time_str = maghrib_time_str
-                        else:
-                            start_time = initial_time
-                            prayer_key = 'None'
-                            prayer_time_str = 'N/A'
-                    elif initial_time == isha_slots.get(day_of_week):
-                        if proposed_end_dt > isha_datetime - buffer:
-                            start_dt = isha_datetime - duration - buffer
-                            start_time = start_dt.strftime('%H:%M')
-                            prayer_key = 'Isha'
-                            prayer_time_str = isha_time_str
-                        else:
-                            start_time = initial_time
-                            prayer_key = 'None'
-                            prayer_time_str = 'N/A'
-                    else:
-                        if proposed_end_dt > maghrib_datetime - buffer:
-                            start_dt = maghrib_datetime - duration - buffer
-                            start_time = start_dt.strftime('%H:%M')
-                            prayer_key = 'Maghrib'
-                            prayer_time_str = maghrib_time_str
-                        elif proposed_end_dt > isha_datetime - buffer:
-                            start_dt = isha_datetime - duration - buffer
-                            start_time = start_dt.strftime('%H:%M')
-                            prayer_key = 'Isha'
-                            prayer_time_str = isha_time_str
-                        else:
-                            start_time = initial_time
-                            prayer_key = 'None'
-                            prayer_time_str = 'N/A'
 
                     scenario = MatchScenario(
                         scenario_id=scenario_id_counter,
@@ -1616,7 +1642,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                         home_team=home_team,
                         away_team=away_team,
                         date=day.strftime('%Y-%m-%d'),
-                        time=start_time,
+                        time=slot_time,
                         city=actual_city,
                         stadium=actual_stadium,
                         suitability_score=100 if is_available else 0,
@@ -1627,133 +1653,73 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                     scenarios_for_match.append(scenario)
                     scenario_id_counter += 1
                     match_scenarios_total += 1
-                    used_slots_per_day[day].add(start_time)
+                    used_slots_per_day[day].add(slot_time)
                     if is_available:
                         day_name = day.strftime('%A')
                         st.session_state.day_counts[day_name][day] += 1
-                    total_scenarios_generated += 1
-                    st.write(f"Scenario {match_scenarios_total} for {home_team} vs {away_team}: {day} {start_time} (adjusted from {prayer_time_str} for {prayer_key}, {'Available' if is_available else 'Unavailable'})")
+                    st.write(f"Scenario {match_scenarios_total} for {home_team} vs {away_team}: {day} {slot_time} ({prayer_key} at {prayer_time_str}, {'Available' if is_available else 'Unavailable'})")
 
-            if match_scenarios_total < 9:
-                for day in available_days:
-                    if match_scenarios_total >= 9:
-                        break
-                    day_of_week = day_names[days.index(day)]
-                    extra_slots = [(dow, time) for dow, time in extra_time_slots if dow == day_of_week]
-                    is_available = is_team_available(home_team, day) and is_team_available(away_team, day)
-                    for _, initial_time in extra_slots:
-                        if initial_time in used_slots_per_day[day] or match_scenarios_total >= 9:
-                            continue
+                # Generate additional scenarios for extra days if needed
+                if match_scenarios_total < 9:
+                    extra_days = [d for d in available_days if d != day and st.session_state.day_counts.get(d.strftime('%A'), {}).get(d, 0) < 3]
+                    for extra_day in extra_days:
+                        if match_scenarios_total >= 9:
+                            break
+                        extra_day_of_week = extra_day.strftime('%A')
+                        extra_calculated = calculate_match_times_for_city_and_date(actual_city, extra_day, teams_data_normalized)
+                        extra_slots = extra_calculated.get('match_slots', ['16:00', '17:18', '21:00'])
+                        extra_asr_time = extra_calculated.get('asr_time', '15:30' if actual_city == 'Jeddah' else '15:33')
+                        extra_maghrib_time = extra_calculated.get('maghrib_time', '17:45' if actual_city == 'Jeddah' else '17:48')
+                        extra_isha_time = extra_calculated.get('isha_time', '19:15' if actual_city == 'Jeddah' else '19:18')
 
-                        calculated = calculate_match_times_for_city_and_date(actual_city, day, teams_data_normalized)
-                        isha_time_str = calculated.get('isha_time', 'N/A')
-                        maghrib_time_str = calculated.get('maghrib_time', 'N/A')
-                        maghrib_slots = calculated.get('maghrib_slots', {
-                            'Monday': '19:00',
-                            'Tuesday': '19:00',
-                            'Wednesday': '19:00',
-                            'Thursday': '19:00',
-                            'Friday': '16:00',
-                            'Saturday': '12:00',
-                            'Sunday': '12:00'
-                        })
-                        isha_slots = calculated.get('isha_slots', {
-                            'Monday': '21:00',
-                            'Tuesday': '21:00',
-                            'Wednesday': '21:00',
-                            'Thursday': '21:00',
-                            'Friday': '18:00',
-                            'Saturday': '16:00',
-                            'Sunday': '16:00'
-                        })
+                        is_available_extra = is_team_available(home_team, extra_day) and is_team_available(away_team, extra_day)
+                        for extra_slot in [s for s in extra_slots if s not in used_slots_per_day.get(extra_day, set())]:
+                            if match_scenarios_total >= 9:
+                                break
+                            try:
+                                slot_hour, slot_minute = map(int, extra_slot.split(":"))
+                                slot_datetime = datetime.datetime(extra_day.year, extra_day.month, extra_day.day, slot_hour, slot_minute)
+                            except ValueError:
+                                st.error(f"Invalid time format for slot {extra_slot}. Skipping.")
+                                continue
 
-                        default_maghrib = "17:45" if actual_city == 'Jeddah' else "17:48"
-                        default_isha = "19:15" if actual_city == 'Jeddah' else "19:18"
-
-                        if isha_time_str == 'N/A' or maghrib_time_str == 'N/A':
-                            st.warning(f"Prayer times missing for {actual_city} on {day}. Using defaults (Maghrib: {default_maghrib}, Isha: {default_isha}).")
-                            maghrib_time_str = default_maghrib
-                            isha_time_str = default_isha
-
-                        try:
-                            maghrib_hour, maghrib_minute = map(int, maghrib_time_str.split(":"))
-                            maghrib_datetime = datetime.datetime(day.year, day.month, day.day, maghrib_hour, maghrib_minute)
-                            isha_hour, isha_minute = map(int, isha_time_str.split(":"))
-                            isha_datetime = datetime.datetime(day.year, day.month, day.day, isha_hour, isha_minute)
-                        except ValueError as e:
-                            st.error(f"Error parsing prayer times for {actual_city} on {day}: {e}. Using defaults.")
-                            maghrib_hour, maghrib_minute = map(int, default_maghrib.split(":"))
-                            maghrib_datetime = datetime.datetime(day.year, day.month, day.day, maghrib_hour, maghrib_minute)
-                            isha_hour, isha_minute = map(int, default_isha.split(":"))
-                            isha_datetime = datetime.datetime(day.year, day.month, day.day, isha_hour, isha_minute)
-
-                        proposed_start_dt = datetime.datetime.combine(day, datetime.datetime.strptime(initial_time, '%H:%M').time())
-                        duration = datetime.timedelta(minutes=52)
-                        proposed_end_dt = proposed_start_dt + duration
-                        buffer = datetime.timedelta(minutes=30)
-
-                        if initial_time == '21:00':
-                            start_time = '21:00'
                             prayer_key = 'None'
                             prayer_time_str = 'N/A'
-                        elif initial_time == maghrib_slots.get(day_of_week):
-                            if proposed_end_dt > maghrib_datetime - buffer:
-                                start_dt = maghrib_datetime - duration - buffer
-                                start_time = start_dt.strftime('%H:%M')
-                                prayer_key = 'Maghrib'
-                                prayer_time_str = maghrib_time_str
-                            else:
-                                start_time = initial_time
-                                prayer_key = 'None'
-                                prayer_time_str = 'N/A'
-                        elif initial_time == isha_slots.get(day_of_week):
-                            if proposed_end_dt > isha_datetime - buffer:
-                                start_dt = isha_datetime - duration - buffer
-                                start_time = start_dt.strftime('%H:%M')
+                            slot_minutes = time_string_to_minutes(extra_slot)
+                            extra_maghrib_slot = time_string_to_minutes(extra_maghrib_time) - 52
+                            extra_isha_slot = time_string_to_minutes(extra_isha_time) - 44
+                            if extra_slot == '21:00' or abs(slot_minutes - extra_isha_slot) < 5:
                                 prayer_key = 'Isha'
-                                prayer_time_str = isha_time_str
-                            else:
-                                start_time = initial_time
-                                prayer_key = 'None'
-                                prayer_time_str = 'N/A'
-                        else:
-                            if proposed_end_dt > maghrib_datetime - buffer:
-                                start_dt = maghrib_datetime - duration - buffer
-                                start_time = start_dt.strftime('%H:%M')
+                                prayer_time_str = extra_isha_time
+                            elif abs(slot_minutes - extra_maghrib_slot) < 5:
                                 prayer_key = 'Maghrib'
-                                prayer_time_str = maghrib_time_str
-                            elif proposed_end_dt > isha_datetime - buffer:
-                                start_dt = isha_datetime - duration - buffer
-                                start_time = start_dt.strftime('%H:%M')
-                                prayer_key = 'Isha'
-                                prayer_time_str = isha_time_str
-                            else:
-                                start_time = initial_time
+                                prayer_time_str = extra_maghrib_time
+                            elif extra_slot == '16:00':
                                 prayer_key = 'None'
                                 prayer_time_str = 'N/A'
 
-                        scenario = MatchScenario(
-                            scenario_id=scenario_id_counter,
-                            match_id=match_id,
-                            home_team=home_team,
-                            away_team=away_team,
-                            date=day.strftime('%Y-%m-%d'),
-                            time=start_time,
-                            city=actual_city,
-                            stadium=actual_stadium,
-                            suitability_score=100 if is_available else 0,
-                            attendance_percentage=random.randint(40, 95) if is_available else 0,
-                            profit=random.randint(3000, 10000) if is_available else 0,
-                            is_available=is_available
-                        )
-                        scenarios_for_match.append(scenario)
-                        scenario_id_counter += 1
-                        match_scenarios_total += 1
-                        used_slots_per_day[day].add(start_time)
-                        if is_available:
-                            day_name = day.strftime('%A')
-                            st.session_state.day_counts[day_name][day] += 1
-                        st.write(f"Extra scenario {match_scenarios_total} for {home_team} vs {away_team}: {day} {start_time}")
+                            scenario = MatchScenario(
+                                scenario_id=scenario_id_counter,
+                                match_id=match_id,
+                                home_team=home_team,
+                                away_team=away_team,
+                                date=extra_day.strftime('%Y-%m-%d'),
+                                time=extra_slot,
+                                city=actual_city,
+                                stadium=actual_stadium,
+                                suitability_score=100 if is_available_extra else 0,
+                                attendance_percentage=random.randint(40, 95) if is_available_extra else 0,
+                                profit=random.randint(3000, 10000) if is_available_extra else 0,
+                                is_available=is_available_extra
+                            )
+                            scenarios_for_match.append(scenario)
+                            scenario_id_counter += 1
+                            match_scenarios_total += 1
+                            used_slots_per_day.setdefault(extra_day, set()).add(extra_slot)
+                            if is_available_extra:
+                                day_name = extra_day.strftime('%A')
+                                st.session_state.day_counts[day_name][extra_day] += 1
+                            st.write(f"Extra scenario {match_scenarios_total} for {home_team} vs {away_team}: {extra_day} {extra_slot} ({prayer_key} at {prayer_time_str}, {'Available' if is_available_extra else 'Unavailable'})")
 
             scenarios_for_match = scenarios_for_match[:9]
             for scenario in scenarios_for_match:
@@ -1767,6 +1733,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
     if not scenarios_df.empty:
         scenarios_df = scenarios_df.sort_values(by=['date', 'time'])
     return scenarios_df
+
 
 def check_afc_conflicts(schedule_df, afc_df):
     if schedule_df.empty:
@@ -2687,7 +2654,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
