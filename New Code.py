@@ -55,7 +55,7 @@ team_logos = {
     'Al-Batin': 'Al-Batin.png',
     'Al-Faisaly': 'Al-Faisaly.png',
     'Al-Ain': 'Al-Ain.png',
-    'NEOM':'asd.png',
+    'NEOM':'NEOMlogo.png',
     'Al-Najma':'Al-Najma.png',
     'Al-riyadh':'Al-riyadh.png',
     'Al-Kholood':'Al-Kholood.png'
@@ -2723,6 +2723,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
