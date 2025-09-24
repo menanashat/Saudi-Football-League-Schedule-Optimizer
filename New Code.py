@@ -332,16 +332,6 @@ def get_prayer_times_unified(city, date, prayer='all'):
     api_city = city_mapping.get(city, city)
     date_str = date.strftime('%d-%m-%Y') if isinstance(date, (datetime.date, datetime.datetime)) else str(date)
 
-    current_date = datetime.date.today()
-    if date > current_date + datetime.timedelta(days=365):
-        st.warning(f"Date {date_str} is too far in the future for Aladhan API. Using fallback times for {city}.")
-        if city == 'Jeddah':
-            return {
-                'timings': jeddah_fallback_times,
-                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
-            }
-        return {'error': f'No fallback times available for {city} on future date {date_str}'}
-
     try:
         url = f"http://api.aladhan.com/v1/timingsByCity/{date_str}?city={api_city}&country=Saudi%20Arabia&method=4"
         response = requests.get(url)
@@ -382,7 +372,6 @@ def get_prayer_times_unified(city, date, prayer='all'):
                 'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
             }
         return {'error': f'Error fetching prayer times: {str(e)}'}
-
 
 def time_string_to_minutes(time_str):
     """Convert time string (HH:MM) to minutes since midnight."""
@@ -2734,6 +2723,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
