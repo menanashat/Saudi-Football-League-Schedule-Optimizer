@@ -1310,8 +1310,14 @@ def display_week_scenarios(week_number, matches_from_excel):
         cols = st.columns(3)
         for i, scenario in enumerate(available_scenarios):
             with cols[i % 3]:
-                card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
-                border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
+                # Make cards red for unavailable scenarios
+                if not scenario.is_available:
+                    card_color = "#ffebee"  # Light red background
+                    border_color = "#f44336"  # Red border
+                else:
+                    card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
+                    border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
+                
                 availability_message = f"<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: {scenario.conflict_reason}</div>" if not scenario.is_available else ""
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
@@ -1390,7 +1396,6 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-
 
 def get_teams_for_match(match_id):
     """
@@ -1615,7 +1620,31 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                 maghrib_time_str = calculated.get('maghrib_time', '17:45' if actual_city == 'Jeddah' else '17:48')
                 isha_time_str = calculated.get('isha_time', '19:15' if actual_city == 'Jeddah' else '19:18')
 
-                is_available = is_team_available(home_team, day) and is_team_available(away_team, day)
+                # Check team availability for this specific day
+                home_availability = is_team_available(home_team, day)
+                away_availability = is_team_available(away_team, day)
+                
+                # Handle tuple returns from is_team_available
+                home_available = home_availability
+                home_conflict_reason = "Team conflict"
+                away_available = away_availability  
+                away_conflict_reason = "Team conflict"
+                
+                if isinstance(home_availability, tuple) and len(home_availability) == 2:
+                    home_available, home_conflict_reason = home_availability
+                if isinstance(away_availability, tuple) and len(away_availability) == 2:
+                    away_available, away_conflict_reason = away_availability
+                
+                is_available = home_available and away_available
+                
+                # Create conflict reason string
+                conflict_parts = []
+                if not home_available:
+                    conflict_parts.append(f"{home_team}: {home_conflict_reason}")
+                if not away_available:
+                    conflict_parts.append(f"{away_team}: {away_conflict_reason}")
+                conflict_reason = "; ".join(conflict_parts) if conflict_parts else ""
+
                 slots_for_day = [s for s in match_slots if s not in used_slots_per_day[day]]
 
                 for slot_time in slots_for_day:
@@ -1657,13 +1686,20 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                         profit=random.randint(3000, 10000) if is_available else 0,
                         is_available=is_available
                     )
+                    
+                    # Add conflict reason to scenario object
+                    scenario.conflict_reason = conflict_reason
+                    
                     scenarios_for_match.append(scenario)
                     scenario_id_counter += 1
                     match_scenarios_total += 1
                     used_slots_per_day[day].add(slot_time)
+                    
+                    # Only count available scenarios toward day limits
                     if is_available:
                         day_name = day.strftime('%A')
                         st.session_state.day_counts[day_name][day] += 1
+                    
                     st.write(f"Scenario {match_scenarios_total} for {home_team} vs {away_team}: {day} {slot_time} ({prayer_key} at {prayer_time_str}, {'Available' if is_available else 'Unavailable'})")
 
                 # Generate additional scenarios for extra days if needed
@@ -1679,7 +1715,31 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                         extra_maghrib_time = extra_calculated.get('maghrib_time', '17:45' if actual_city == 'Jeddah' else '17:48')
                         extra_isha_time = extra_calculated.get('isha_time', '19:15' if actual_city == 'Jeddah' else '19:18')
 
-                        is_available_extra = is_team_available(home_team, extra_day) and is_team_available(away_team, extra_day)
+                        # Check team availability for extra day
+                        extra_home_availability = is_team_available(home_team, extra_day)
+                        extra_away_availability = is_team_available(away_team, extra_day)
+                        
+                        # Handle tuple returns
+                        extra_home_available = extra_home_availability
+                        extra_home_conflict_reason = "Team conflict"
+                        extra_away_available = extra_away_availability
+                        extra_away_conflict_reason = "Team conflict"
+                        
+                        if isinstance(extra_home_availability, tuple) and len(extra_home_availability) == 2:
+                            extra_home_available, extra_home_conflict_reason = extra_home_availability
+                        if isinstance(extra_away_availability, tuple) and len(extra_away_availability) == 2:
+                            extra_away_available, extra_away_conflict_reason = extra_away_availability
+                        
+                        is_available_extra = extra_home_available and extra_away_available
+                        
+                        # Create conflict reason for extra day
+                        extra_conflict_parts = []
+                        if not extra_home_available:
+                            extra_conflict_parts.append(f"{home_team}: {extra_home_conflict_reason}")
+                        if not extra_away_available:
+                            extra_conflict_parts.append(f"{away_team}: {extra_away_conflict_reason}")
+                        extra_conflict_reason = "; ".join(extra_conflict_parts) if extra_conflict_parts else ""
+
                         for extra_slot in [s for s in extra_slots if s not in used_slots_per_day.get(extra_day, set())]:
                             if match_scenarios_total >= 9:
                                 break
@@ -1719,16 +1779,30 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                                 profit=random.randint(3000, 10000) if is_available_extra else 0,
                                 is_available=is_available_extra
                             )
+                            
+                            # Add conflict reason to extra scenario
+                            scenario.conflict_reason = extra_conflict_reason
+                            
                             scenarios_for_match.append(scenario)
                             scenario_id_counter += 1
                             match_scenarios_total += 1
                             used_slots_per_day.setdefault(extra_day, set()).add(extra_slot)
+                            
+                            # Only count available scenarios toward day limits
                             if is_available_extra:
                                 day_name = extra_day.strftime('%A')
                                 st.session_state.day_counts[day_name][extra_day] += 1
+                                
                             st.write(f"Extra scenario {match_scenarios_total} for {home_team} vs {away_team}: {extra_day} {extra_slot} ({prayer_key} at {prayer_time_str}, {'Available' if is_available_extra else 'Unavailable'})")
 
             scenarios_for_match = scenarios_for_match[:9]
+            
+            # Sort scenarios by date and time before storing
+            scenarios_for_match.sort(key=lambda s: (
+                datetime.datetime.strptime(s.date, '%Y-%m-%d').date(),
+                datetime.datetime.strptime(s.time, '%H:%M').time()
+            ))
+            
             for scenario in scenarios_for_match:
                 if match_id not in scenario_manager.scenarios:
                     scenario_manager.scenarios[match_id] = []
@@ -2661,6 +2735,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
