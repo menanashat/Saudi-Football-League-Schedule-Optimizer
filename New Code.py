@@ -403,6 +403,7 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     """
     Calculates three match start times per day: Maghrib - 52 min, Isha - 52 min, and 21:00.
     Ensures matches avoid prayer times or place prayers in halftime.
+    MODIFIED: Enhanced error handling and 2026-compatible fallback times.
     """
     result = {
         "asr_time": None,
@@ -414,25 +415,41 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     prayer_data = get_prayer_times_unified(city, match_date)
     if 'error' in prayer_data:
         st.error(f"Error fetching prayer times for {city} on {match_date}: {prayer_data['error']}")
+        
+        # MODIFICATION 1: Enhanced fallback calculation for 2026
+        # Instead of hardcoded times, calculate seasonal fallbacks
+        fallback_times = calculate_seasonal_fallback_times(city, match_date)
         result.update({
-            "asr_time": "15:30" if city == 'Jeddah' else "15:33",
-            "maghrib_time": "17:45" if city == 'Jeddah' else "17:48",
-            "isha_time": "19:15" if city == 'Jeddah' else "19:18"
+            "asr_time": fallback_times["asr_time"],
+            "maghrib_time": fallback_times["maghrib_time"],
+            "isha_time": fallback_times["isha_time"]
         })
+        st.warning(f"Using calculated fallback prayer times for {city} on {match_date}")
     else:
-        result.update({
-            "asr_time": prayer_data['timings']['asr'],
-            "maghrib_time": prayer_data['timings']['maghrib'],
-            "isha_time": prayer_data['timings']['isha']
-        })
+        # MODIFICATION 2: Add validation for fetched prayer times
+        if validate_prayer_times(prayer_data['timings']):
+            result.update({
+                "asr_time": prayer_data['timings']['asr'],
+                "maghrib_time": prayer_data['timings']['maghrib'],
+                "isha_time": prayer_data['timings']['isha']
+            })
+        else:
+            st.warning(f"Invalid prayer times received for {city} on {match_date}, using fallback")
+            fallback_times = calculate_seasonal_fallback_times(city, match_date)
+            result.update({
+                "asr_time": fallback_times["asr_time"],
+                "maghrib_time": fallback_times["maghrib_time"],
+                "isha_time": fallback_times["isha_time"]
+            })
 
     asr_minutes = time_string_to_minutes(result["asr_time"])
     maghrib_minutes = time_string_to_minutes(result["maghrib_time"])
     isha_minutes = time_string_to_minutes(result["isha_time"])
 
-    # Generate slots: Maghrib - 52 min, Isha - 52 min, 21:00
+    # MODIFICATION 3: Adjusted slot calculation (Maghrib-52, Isha-44, not both -52)
+    # Generate slots: Maghrib - 52 min, Isha - 44 min, 21:00
     maghrib_slot = minutes_to_time_string(maghrib_minutes - 52)
-    isha_slot = minutes_to_time_string(isha_minutes - 52)
+    isha_slot = minutes_to_time_string(isha_minutes - 44)  # Changed from -52 to -44
     mandatory_slot = "21:00"
     candidate_slots = [maghrib_slot, isha_slot, mandatory_slot]
 
@@ -466,42 +483,171 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
         if mandatory_slot not in valid_slots:
             valid_slots.append(mandatory_slot)
     else:
-        # Try an alternative slot if 21:00 conflicts
-        alternative_slot = minutes_to_time_string(isha_minutes - 60)  # Try Isha - 60 min as fallback
-        alternative_start = time_string_to_minutes(alternative_slot)
-        alternative_end = alternative_start + 120
-        alternative_conflict = False
-        for prayer_minutes in [asr_minutes, maghrib_minutes, isha_minutes]:
-            if alternative_start <= prayer_minutes <= alternative_end:
-                halftime_start = alternative_start + 55
-                halftime_end = alternative_start + 65
-                if not (halftime_start <= prayer_minutes <= halftime_end):
-                    alternative_conflict = True
-                    break
-        if not alternative_conflict and alternative_slot not in valid_slots:
-            valid_slots.append(alternative_slot)
+        # MODIFICATION 4: Enhanced fallback slot calculation
+        # Try multiple alternative slots if 21:00 conflicts
+        alternative_slots = [
+            minutes_to_time_string(isha_minutes - 60),  # Isha - 60 min
+            minutes_to_time_string(maghrib_minutes - 80),  # Maghrib - 80 min
+            "20:30",  # Fixed alternative
+            "19:30"   # Earlier alternative
+        ]
+        
+        for alternative_slot in alternative_slots:
+            if alternative_slot in valid_slots:
+                continue
+                
+            alternative_start = time_string_to_minutes(alternative_slot)
+            alternative_end = alternative_start + 120
+            alternative_conflict = False
+            
+            for prayer_minutes in [asr_minutes, maghrib_minutes, isha_minutes]:
+                if alternative_start <= prayer_minutes <= alternative_end:
+                    halftime_start = alternative_start + 55
+                    halftime_end = alternative_start + 65
+                    if not (halftime_start <= prayer_minutes <= halftime_end):
+                        alternative_conflict = True
+                        break
+            
+            if not alternative_conflict:
+                valid_slots.append(alternative_slot)
+                break
         else:
-            st.warning(f"Cannot schedule 21:00 or alternative slot for {city} on {match_date} due to prayer conflicts.")
+            st.warning(f"Cannot schedule 21:00 or alternative slots for {city} on {match_date} due to prayer conflicts.")
 
-    # Ensure exactly three slots
+    # MODIFICATION 5: Improved slot filling logic
+    # Ensure exactly three slots with better gap analysis
     if len(valid_slots) < 3:
-        # Try adding a slot in the Asr-Maghrib gap if 2 hours available
-        if asr_minutes + 120 < maghrib_minutes:
-            gap_start = asr_minutes + 30
+        # Try adding slots in available gaps
+        potential_gaps = [
+            (asr_minutes + 30, "post_asr"),  # 30 min after Asr
+            (maghrib_minutes + 100, "post_maghrib"),  # 100 min after Maghrib
+            (16 * 60, "fixed_4pm"),  # 4:00 PM fixed slot
+            (15 * 60, "fixed_3pm")   # 3:00 PM fixed slot
+        ]
+        
+        for gap_start, gap_type in potential_gaps:
+            if len(valid_slots) >= 3:
+                break
+                
             gap_time = minutes_to_time_string(gap_start)
             gap_end = gap_start + 120
-            if gap_time not in valid_slots and not any(gap_start <= p <= gap_end for p in [asr_minutes, maghrib_minutes, isha_minutes]):
+            
+            # Check if this slot is already included
+            if gap_time in valid_slots:
+                continue
+            
+            # Check for prayer conflicts
+            gap_conflict = False
+            for prayer_minutes in [asr_minutes, maghrib_minutes, isha_minutes]:
+                if gap_start <= prayer_minutes <= gap_end:
+                    halftime_start = gap_start + 55
+                    halftime_end = gap_start + 65
+                    if not (halftime_start <= prayer_minutes <= halftime_end):
+                        gap_conflict = True
+                        break
+            
+            if not gap_conflict:
                 valid_slots.append(gap_time)
-        # Fill remaining slots with candidates if needed
+                st.write(f"Added {gap_type} slot at {gap_time} for {city} on {match_date}")
+
+        # Fill remaining slots with original candidates if still needed
         for candidate in [maghrib_slot, isha_slot]:
             if len(valid_slots) >= 3:
                 break
             if candidate not in valid_slots:
                 valid_slots.append(candidate)
+                st.write(f"Added candidate slot {candidate} to fill remaining slots")
 
     result["match_slots"] = sorted(valid_slots, key=time_string_to_minutes)[:3]
-    st.write(f"Match slots for {city} on {match_date}: {result['match_slots']}")
+    
+    # MODIFICATION 6: Enhanced logging with prayer time details
+    st.write(f"Prayer times for {city} on {match_date}: Asr={result['asr_time']}, Maghrib={result['maghrib_time']}, Isha={result['isha_time']}")
+    st.write(f"Final match slots for {city} on {match_date}: {result['match_slots']}")
+    
     return result
+
+# MODIFICATION 7: New helper functions
+def calculate_seasonal_fallback_times(city, match_date):
+    """
+    Calculate seasonal fallback prayer times when API fails.
+    Uses simplified astronomical calculations.
+    """
+    import math
+    from datetime import datetime
+    
+    # City coordinates
+    city_coords = {
+        'Jeddah': (21.485811, 39.192505),
+        'Riyadh': (24.7136, 46.6753),
+        'Dammam': (26.4207, 50.0888),
+        'Abha': (18.2164, 42.5056),
+        'Tabuk': (28.3998, 36.5782),
+        'Buraidah': (26.3260, 43.9750),
+    }
+    
+    lat, lng = city_coords.get(city, city_coords['Riyadh'])
+    
+    # Convert match_date to datetime if it's a string
+    if isinstance(match_date, str):
+        date_obj = datetime.strptime(match_date, '%Y-%m-%d').date()
+    else:
+        date_obj = match_date
+    
+    # Simple seasonal adjustment based on day of year
+    day_of_year = date_obj.timetuple().tm_yday
+    
+    # Base times for Riyadh (adjust for other cities)
+    base_asr = 15.5  # 3:30 PM
+    base_maghrib = 17.8  # 5:48 PM
+    base_isha = 19.3  # 7:18 PM
+    
+    # Seasonal variation (simplified)
+    seasonal_offset = 0.5 * math.sin(2 * math.pi * (day_of_year - 80) / 365)
+    
+    # City latitude adjustment
+    lat_offset = (lat - 24.7136) * 0.02  # Rough adjustment per degree latitude
+    
+    # Calculate adjusted times
+    asr_time = base_asr + seasonal_offset + lat_offset
+    maghrib_time = base_maghrib + seasonal_offset + lat_offset
+    isha_time = base_isha + seasonal_offset + lat_offset
+    
+    def format_time(time_decimal):
+        hours = int(time_decimal)
+        minutes = int((time_decimal - hours) * 60)
+        return f"{hours:02d}:{minutes:02d}"
+    
+    return {
+        "asr_time": format_time(asr_time),
+        "maghrib_time": format_time(maghrib_time),
+        "isha_time": format_time(isha_time)
+    }
+
+def validate_prayer_times(timings):
+    """
+    Validate that prayer times are reasonable and properly formatted.
+    """
+    required_prayers = ['asr', 'maghrib', 'isha']
+    
+    for prayer in required_prayers:
+        if prayer not in timings:
+            return False
+        
+        time_str = timings[prayer]
+        try:
+            # Try to parse the time
+            if ':' not in time_str:
+                return False
+            
+            hours, minutes = map(int, time_str.split(':')[:2])  # Handle seconds if present
+            
+            if not (0 <= hours <= 23 and 0 <= minutes <= 59):
+                return False
+                
+        except (ValueError, AttributeError):
+            return False
+    
+    return True
 
 def time_string_to_minutes(time_str: str) -> int:
     """Convert HH:MM format to minutes since midnight"""
@@ -2735,6 +2881,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
