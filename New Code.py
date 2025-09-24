@@ -1152,6 +1152,7 @@ def display_week_scenarios(week_number, matches_from_excel):
     Display matches for a week, showing available scenarios (even if zero), with day count tracking.
     Includes specific conflict reasons (e.g., international break or conflicting team) when unavailable.
     Handles cases where is_team_available returns a boolean or a tuple.
+    All scenarios are properly sorted by date and time.
     """
     st.markdown(f"### Week {week_number} Match Scenarios")
     if not matches_from_excel:
@@ -1289,6 +1290,12 @@ def display_week_scenarios(week_number, matches_from_excel):
             s.conflict_reason = conflict_reason
             if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
+
+        # CRITICAL FIX: Sort scenarios by date and time
+        available_scenarios.sort(key=lambda s: (
+            datetime.datetime.strptime(s.date, '%Y-%m-%d').date(),
+            datetime.datetime.strptime(s.time, '%H:%M').time()
+        ))
 
         st.subheader(f"{home} vs {away}")
         if not available_scenarios:
@@ -2654,6 +2661,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
