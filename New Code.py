@@ -304,258 +304,74 @@ def check_rest_period(schedule, team, match_date):
                 return False
     return True
 
-import datetime
-import requests
-import math
-from functools import lru_cache
-
 @lru_cache(maxsize=1000)
 def get_prayer_times_unified(city, date, prayer='all'):
     """
-    FIXED: Fetch prayer times for a given city and date from the Aladhan API using Umm Al-Qura method.
-    Enhanced with proper 2026 support and seasonal fallbacks for all cities.
+    Fetch prayer times for a given city and date from the Aladhan API using Umm Al-Qura method.
+    Map 'Unknown' city to 'Riyadh' and handle invalid or future dates with fallbacks.
     """
     if city == 'Unknown':
         city = 'Riyadh'
         st.warning(f"City 'Unknown' detected. Defaulting to 'Riyadh' for prayer times.")
-    
+
     if date is None:
         date = datetime.date.today()
         st.warning(f"No date provided for prayer times. Using today's date: {date}")
-    
-    # Convert date to datetime.date object if it's a string
-    if isinstance(date, str):
-        try:
-            date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-        except ValueError:
-            try:
-                date = datetime.datetime.strptime(date, '%d-%m-%Y').date()
-            except ValueError:
-                st.error(f"Invalid date format: {date}. Using today's date.")
-                date = datetime.date.today()
-    
+
     city_mapping = {
         'Riyadh': 'Riyadh', 'Jeddah': 'Jeddah', 'Dammam': 'Dammam', 'Buraidah': 'Buraidah',
         'Al-Mubarraz': 'Al Mubarraz', 'Khamis Mushait': 'Khamis Mushait', 'Abha': 'Abha',
         'Al Khobar': 'Al Khobar', 'Saihat': 'Saihat', 'Al Majmaah': 'Al Majmaah',
         'Ar Rass': 'Ar Rass', 'Unaizah': 'Unaizah', 'NEOM': 'Tabuk'
     }
-    
-    # ENHANCEMENT 1: Comprehensive fallback times for all cities with seasonal adjustment
-    def get_seasonal_fallback_times(city, date):
-        """Calculate seasonal fallback prayer times for any city and date"""
-        
-        # Base coordinates for each city (latitude, longitude)
-        city_coords = {
-            'Riyadh': (24.7136, 46.6753),
-            'Jeddah': (21.485811, 39.192505),
-            'Dammam': (26.4207, 50.0888),
-            'Abha': (18.2164, 42.5056),
-            'Tabuk': (28.3998, 36.5782),
-            'Buraidah': (26.3260, 43.9750),
-            'Al Mubarraz': (25.4077, 49.5831),
-            'Khamis Mushait': (18.3061, 42.7286),
-            'Al Khobar': (26.2172, 50.1971),
-            'Saihat': (26.4781, 49.9453),
-            'Al Majmaah': (25.8911, 45.3700),
-            'Ar Rass': (25.8697, 43.4951),
-            'Unaizah': (26.0876, 43.9928),
-        }
-        
-        lat, lng = city_coords.get(city, city_coords['Riyadh'])
-        
-        # Day of year for seasonal calculation
-        day_of_year = date.timetuple().tm_yday
-        
-        # Solar declination angle
-        declination = 23.45 * math.sin(math.radians(360 * (284 + day_of_year) / 365))
-        
-        # Equation of time (approximation)
-        B = 360 * (day_of_year - 81) / 365
-        equation_of_time = 9.87 * math.sin(math.radians(2 * B)) - 7.53 * math.cos(math.radians(B)) - 1.5 * math.sin(math.radians(B))
-        
-        # Solar noon
-        solar_noon = 12 - (lng / 15) + (equation_of_time / 60)
-        
-        # Calculate prayer times
-        lat_rad = math.radians(lat)
-        decl_rad = math.radians(declination)
-        
-        # Sunrise/Sunset
-        try:
-            sunrise_angle = math.degrees(math.acos(-math.tan(lat_rad) * math.tan(decl_rad)))
-            sunrise_time = solar_noon - (sunrise_angle / 15) + 3  # +3 for timezone
-            sunset_time = solar_noon + (sunrise_angle / 15) + 3
-            
-            # Asr (when shadow length = object + shadow at noon)
-            asr_angle = math.degrees(math.acos((math.sin(math.atan(2 + math.tan(abs(lat_rad - decl_rad)))) - 
-                                              math.sin(lat_rad) * math.sin(decl_rad)) / 
-                                             (math.cos(lat_rad) * math.cos(decl_rad))))
-            asr_time = solar_noon + (asr_angle / 15) + 3
-            
-            # Maghrib (sunset + 3 minutes)
-            maghrib_time = sunset_time + 3/60
-            
-            # Isha (90 minutes after Maghrib for Saudi Arabia)
-            isha_time = maghrib_time + 1.5
-            
-            # Fajr (90 minutes before sunrise)
-            fajr_time = sunrise_time - 1.5
-            
-        except (ValueError, ZeroDivisionError):
-            # Fallback to seasonal estimates if calculation fails
-            st.warning(f"Using enhanced seasonal fallback for {city} on {date}")
-            
-            # Seasonal adjustment based on day of year
-            seasonal_offset = 0.6 * math.sin(2 * math.pi * (day_of_year - 80) / 365)
-            
-            # Base times for different cities (adjusted for seasonal variation)
-            base_times = {
-                'Riyadh': (4.75, 12.1, 15.42, 17.8, 19.3),
-                'Jeddah': (4.75, 12.0, 15.5, 17.75, 19.25),
-                'Dammam': (4.7, 12.2, 15.38, 17.85, 19.35),
-                'Tabuk': (4.8, 12.0, 15.3, 17.6, 19.1),
-                'Abha': (4.9, 12.0, 15.6, 18.0, 19.4),
-                'Buraidah': (4.75, 12.1, 15.4, 17.8, 19.3),
-            }
-            
-            base_set = base_times.get(city, base_times['Riyadh'])
-            fajr_time = base_set[0] + seasonal_offset * 0.3
-            dhuhr_time = base_set[1] + seasonal_offset * 0.2
-            asr_time = base_set[2] + seasonal_offset
-            maghrib_time = base_set[3] + seasonal_offset
-            isha_time = base_set[4] + seasonal_offset
-        
-        def format_time(time_decimal):
-            hours = int(time_decimal)
-            minutes = int((time_decimal - hours) * 60)
-            return f"{hours:02d}:{minutes:02d}"
-        
-        return {
-            'fajr': format_time(fajr_time),
-            'dhuhr': format_time(solar_noon + 3),  # Solar noon + timezone
-            'asr': format_time(asr_time),
-            'maghrib': format_time(maghrib_time),
-            'isha': format_time(isha_time)
-        }
-    
+
+    jeddah_fallback_times = {
+        'fajr': '04:45', 'dhuhr': '12:00', 'asr': '15:30', 'maghrib': '17:45', 'isha': '19:15'
+    }
+
     api_city = city_mapping.get(city, city)
-    date_str = date.strftime('%d-%m-%Y')
-    
-    # ENHANCEMENT 2: Check if date is too far in the future (likely to fail)
-    today = datetime.date.today()
-    days_ahead = (date - today).days
-    
-    if days_ahead > 365:  # More than 1 year ahead
-        st.warning(f"Date {date} is {days_ahead} days ahead. API might not have data. Using calculated fallback.")
-        fallback_times = get_seasonal_fallback_times(api_city, date)
-        return {
-            'timings': fallback_times,
-            'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in fallback_times.items()}
-        }
-    
+    date_str = date.strftime('%d-%m-%Y') if isinstance(date, (datetime.date, datetime.datetime)) else str(date)
+
     try:
         url = f"http://api.aladhan.com/v1/timingsByCity/{date_str}?city={api_city}&country=Saudi%20Arabia&method=4"
-        response = requests.get(url, timeout=10)  # Added timeout
+        response = requests.get(url)
         data = response.json()
-        
+
         if response.status_code != 200 or data.get('code') != 200:
             st.error(f"API request failed for {city} on {date_str}: Status {response.status_code}")
-            # ENHANCEMENT 3: Use seasonal fallback for ANY city, not just Jeddah
-            st.warning(f"Using calculated fallback prayer times for {city} on {date_str}.")
-            fallback_times = get_seasonal_fallback_times(api_city, date)
-            return {
-                'timings': fallback_times,
-                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in fallback_times.items()}
-            }
-        
-        timings = data['data']['timings']
-        
-        # ENHANCEMENT 4: Validate returned times are reasonable (with warnings, not strict rejection)
-        def validate_prayer_time(prayer_name, time_str):
-            """Validate individual prayer times are reasonable"""
-            try:
-                hours, minutes = map(int, time_str.split(':')[:2])
-                time_decimal = hours + minutes/60
-                
-                # Reasonable ranges for Saudi Arabia (updated with wider ranges)
-                valid_ranges = {
-                    'Fajr': (3.0, 6.5),    # 3:00 AM to 6:30 AM
-                    'Dhuhr': (11.5, 13.0), # 11:30 AM to 1:00 PM (wider range for seasonal variation)
-                    'Asr': (13.5, 17.0),   # 1:30 PM to 5:00 PM (wider range)
-                    'Maghrib': (16.5, 19.5), # 4:30 PM to 7:30 PM (wider range for seasonal variation)
-                    'Isha': (18.0, 21.5)   # 6:00 PM to 9:30 PM (wider range)
+            if city == 'Jeddah':
+                st.warning(f"Using fallback prayer times for Jeddah on {date_str}.")
+                return {
+                    'timings': jeddah_fallback_times,
+                    'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
                 }
-                
-                if prayer_name in valid_ranges:
-                    min_time, max_time = valid_ranges[prayer_name]
-                    if min_time <= time_decimal <= max_time:
-                        return True
-                    else:
-                        # Just warn, don't reject - the time might be correct for seasonal variations
-                        st.info(f"Note: {prayer_name} time {time_str} is outside typical range but may be correct for {city} in this season")
-                        return True  # Accept it anyway
-                return True
-            except:
-                return False
-        
-        # Check for completely invalid times (malformed), but accept seasonal variations
-        prayer_times_malformed = any(
-            not validate_prayer_time(prayer, timings.get(prayer, '00:00'))
-            for prayer in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']
-            if timings.get(prayer, '00:00') == '00:00'  # Only reject if actually malformed
-        )
-        
-        if prayer_times_malformed:
-            st.warning(f"API returned malformed prayer times for {city} on {date_str}. Using fallback.")
-            fallback_times = get_seasonal_fallback_times(api_city, date)
-            return {
-                'timings': fallback_times,
-                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in fallback_times.items()}
-            }
-        
-        # ENHANCEMENT 5: Clean the time strings (remove timezone info if present)
-        def clean_time_string(time_str):
-            """Remove timezone and other extra info from time string"""
-            return time_str.split()[0].split('(')[0].strip()
-        
+            return {'error': f'API request failed for {city} on {date_str}'}
+
+        timings = data['data']['timings']
         prayer_times = {
             'timings': {
-                'fajr': clean_time_string(timings['Fajr']),
-                'dhuhr': clean_time_string(timings['Dhuhr']),
-                'asr': clean_time_string(timings['Asr']),
-                'maghrib': clean_time_string(timings['Maghrib']),
-                'isha': clean_time_string(timings['Isha'])
+                'fajr': timings['Fajr'], 'dhuhr': timings['Dhuhr'], 'asr': timings['Asr'],
+                'maghrib': timings['Maghrib'], 'isha': timings['Isha']
+            },
+            'minutes': {
+                'fajr_minutes': time_string_to_minutes(timings['Fajr']),
+                'dhuhr_minutes': time_string_to_minutes(timings['Dhuhr']),
+                'asr_minutes': time_string_to_minutes(timings['Asr']),
+                'maghrib_minutes': time_string_to_minutes(timings['Maghrib']),
+                'isha_minutes': time_string_to_minutes(timings['Isha'])
             }
         }
-        
-        # Add minutes conversion
-        prayer_times['minutes'] = {
-            f"{prayer}_minutes": time_string_to_minutes(time) 
-            for prayer, time in prayer_times['timings'].items()
-        }
-        
-        # ENHANCEMENT 6: Log successful API call for debugging
-        st.success(f"✅ Successfully fetched prayer times for {city} on {date_str} from API")
-        
         return prayer_times
-        
-    except requests.Timeout:
-        st.error(f"Timeout fetching prayer times for {city} on {date_str}")
-        fallback_times = get_seasonal_fallback_times(api_city, date)
-        return {
-            'timings': fallback_times,
-            'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in fallback_times.items()}
-        }
-        
+
     except Exception as e:
         st.error(f"Unexpected error fetching prayer times for {city} on {date_str}: {e}")
-        fallback_times = get_seasonal_fallback_times(api_city, date)
-        st.warning(f"Using calculated fallback prayer times for {city} on {date_str}.")
-        return {
-            'timings': fallback_times,
-            'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in fallback_times.items()}
-        }
+        if city == 'Jeddah':
+            st.warning(f"Using fallback prayer times for Jeddah on {date_str}.")
+            return {
+                'timings': jeddah_fallback_times,
+                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
+            }
+        return {'error': f'Error fetching prayer times: {str(e)}'}
 
 
 
@@ -2909,6 +2725,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
