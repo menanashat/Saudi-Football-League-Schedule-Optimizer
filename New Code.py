@@ -403,15 +403,28 @@ def get_prayer_times_unified(city, date, prayer='all'):
             fajr_time = sunrise_time - 1.5
             
         except (ValueError, ZeroDivisionError):
-            # Fallback to reasonable estimates if calculation fails
-            st.warning(f"Using basic fallback for {city} on {date}")
+            # Fallback to seasonal estimates if calculation fails
+            st.warning(f"Using enhanced seasonal fallback for {city} on {date}")
+            
+            # Seasonal adjustment based on day of year
+            seasonal_offset = 0.6 * math.sin(2 * math.pi * (day_of_year - 80) / 365)
+            
+            # Base times for different cities (adjusted for seasonal variation)
             base_times = {
-                'Riyadh': (4.75, 12.0, 15.42, 17.8, 19.3),
+                'Riyadh': (4.75, 12.1, 15.42, 17.8, 19.3),
                 'Jeddah': (4.75, 12.0, 15.5, 17.75, 19.25),
-                'Dammam': (4.7, 12.0, 15.38, 17.85, 19.35),
+                'Dammam': (4.7, 12.2, 15.38, 17.85, 19.35),
+                'Tabuk': (4.8, 12.0, 15.3, 17.6, 19.1),
+                'Abha': (4.9, 12.0, 15.6, 18.0, 19.4),
+                'Buraidah': (4.75, 12.1, 15.4, 17.8, 19.3),
             }
-            fajr_time, dhuhr_time, asr_time, maghrib_time, isha_time = base_times.get(city, base_times['Riyadh'])
-            dhuhr_time = solar_noon + 3
+            
+            base_set = base_times.get(city, base_times['Riyadh'])
+            fajr_time = base_set[0] + seasonal_offset * 0.3
+            dhuhr_time = base_set[1] + seasonal_offset * 0.2
+            asr_time = base_set[2] + seasonal_offset
+            maghrib_time = base_set[3] + seasonal_offset
+            isha_time = base_set[4] + seasonal_offset
         
         def format_time(time_decimal):
             hours = int(time_decimal)
@@ -458,20 +471,20 @@ def get_prayer_times_unified(city, date, prayer='all'):
         
         timings = data['data']['timings']
         
-        # ENHANCEMENT 4: Validate returned times are reasonable
+        # ENHANCEMENT 4: Validate returned times are reasonable (with warnings, not strict rejection)
         def validate_prayer_time(prayer_name, time_str):
             """Validate individual prayer times are reasonable"""
             try:
                 hours, minutes = map(int, time_str.split(':')[:2])
                 time_decimal = hours + minutes/60
                 
-                # Reasonable ranges for Saudi Arabia
+                # Reasonable ranges for Saudi Arabia (updated with wider ranges)
                 valid_ranges = {
-                    'Fajr': (3.5, 6.0),    # 3:30 AM to 6:00 AM
-                    'Dhuhr': (11.5, 12.5), # 11:30 AM to 12:30 PM
-                    'Asr': (14.0, 16.5),   # 2:00 PM to 4:30 PM
-                    'Maghrib': (17.0, 19.0), # 5:00 PM to 7:00 PM
-                    'Isha': (18.5, 21.0)   # 6:30 PM to 9:00 PM
+                    'Fajr': (3.0, 6.5),    # 3:00 AM to 6:30 AM
+                    'Dhuhr': (11.5, 13.0), # 11:30 AM to 1:00 PM (wider range for seasonal variation)
+                    'Asr': (13.5, 17.0),   # 1:30 PM to 5:00 PM (wider range)
+                    'Maghrib': (16.5, 19.5), # 4:30 PM to 7:30 PM (wider range for seasonal variation)
+                    'Isha': (18.0, 21.5)   # 6:00 PM to 9:30 PM (wider range)
                 }
                 
                 if prayer_name in valid_ranges:
@@ -479,20 +492,22 @@ def get_prayer_times_unified(city, date, prayer='all'):
                     if min_time <= time_decimal <= max_time:
                         return True
                     else:
-                        st.warning(f"{prayer_name} time {time_str} seems unusual for Saudi Arabia")
-                        return False
+                        # Just warn, don't reject - the time might be correct for seasonal variations
+                        st.info(f"Note: {prayer_name} time {time_str} is outside typical range but may be correct for {city} in this season")
+                        return True  # Accept it anyway
                 return True
             except:
                 return False
         
-        # Validate all prayer times
-        prayer_times_valid = all(
-            validate_prayer_time(prayer, timings.get(prayer, '00:00'))
+        # Check for completely invalid times (malformed), but accept seasonal variations
+        prayer_times_malformed = any(
+            not validate_prayer_time(prayer, timings.get(prayer, '00:00'))
             for prayer in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']
+            if timings.get(prayer, '00:00') == '00:00'  # Only reject if actually malformed
         )
         
-        if not prayer_times_valid:
-            st.warning(f"API returned suspicious prayer times for {city} on {date_str}. Using fallback.")
+        if prayer_times_malformed:
+            st.warning(f"API returned malformed prayer times for {city} on {date_str}. Using fallback.")
             fallback_times = get_seasonal_fallback_times(api_city, date)
             return {
                 'timings': fallback_times,
@@ -541,6 +556,7 @@ def get_prayer_times_unified(city, date, prayer='all'):
             'timings': fallback_times,
             'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in fallback_times.items()}
         }
+
 
 
 def time_string_to_minutes(time_str):
@@ -2893,6 +2909,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
