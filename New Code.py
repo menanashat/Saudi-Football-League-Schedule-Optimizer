@@ -409,7 +409,6 @@ def time_string_to_minutes(time_str):
     except (ValueError, AttributeError):
         return 0
 
-
 def minutes_to_time_string(total_minutes):
     """
     Convert minutes since midnight to time string (HH:MM)
@@ -499,22 +498,28 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
         for prayer_name, prayer_minutes in [('Asr', asr_minutes), ('Maghrib', maghrib_minutes), ('Isha', isha_minutes)]:
             if start_minutes <= prayer_minutes <= end_minutes:
                 # Prayer falls during match - check if it's during halftime
-                halftime_start = start_minutes + 55  # Halftime starts at 55 minutes
-                halftime_end = start_minutes + 65    # Halftime ends at 65 minutes
+                halftime_start = start_minutes + 45  # Halftime starts at 45 minutes (first half ends)
+                halftime_end = start_minutes + 75    # Halftime ends at 75 minutes (second half starts)
                 
-                if not (halftime_start <= prayer_minutes <= halftime_end):
+                st.write(f"DEBUG: Match {start_time}: {prayer_name} at {minutes_to_time_string(prayer_minutes)} falls during match ({minutes_to_time_string(start_minutes)}-{minutes_to_time_string(end_minutes)})")
+                st.write(f"DEBUG: Halftime window: {minutes_to_time_string(halftime_start)} to {minutes_to_time_string(halftime_end)}")
+                
+                if halftime_start <= prayer_minutes <= halftime_end:
+                    # Prayer falls during halftime - this is OK
+                    st.write(f"DEBUG: {prayer_name} fits in halftime - NO CONFLICT")
+                else:
                     # Prayer is not during halftime - this is a conflict
                     prayer_conflict = True
-                    st.write(f"DEBUG: {start_time} conflicts with {prayer_name} at {minutes_to_time_string(prayer_minutes)}")
+                    st.write(f"DEBUG: {start_time} conflicts with {prayer_name} - prayer outside halftime")
                     break
-                else:
-                    st.write(f"DEBUG: {start_time} - {prayer_name} at {minutes_to_time_string(prayer_minutes)} fits in halftime")
+            else:
+                st.write(f"DEBUG: {prayer_name} at {minutes_to_time_string(prayer_minutes)} is outside match time - OK")
         
         if not prayer_conflict:
             valid_slots.append(start_time)
-            st.write(f"DEBUG: {start_time} is valid (no prayer conflicts)")
+            st.write(f"DEBUG: ✅ {start_time} is VALID (no prayer conflicts)")
         else:
-            st.write(f"DEBUG: {start_time} has prayer conflicts - rejected")
+            st.write(f"DEBUG: ❌ {start_time} REJECTED due to prayer conflicts")
 
     # Ensure 21:00 is always included unless it conflicts
     mandatory_start = time_string_to_minutes(mandatory_slot)
@@ -592,6 +597,7 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     
     st.write(f"Final match slots for {city} on {match_date}: {result['match_slots']}")
     return result
+
 
 
 
@@ -2814,6 +2820,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
