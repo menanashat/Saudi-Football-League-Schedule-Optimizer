@@ -303,12 +303,11 @@ def check_rest_period(schedule, team, match_date):
             if abs((match_date - existing_date).days) < min_rest_days:
                 return False
     return True
-
 @lru_cache(maxsize=1000)
 def get_prayer_times_unified(city, date, prayer='all'):
     """
     Fetch prayer times for a given city and date from the Aladhan API using Umm Al-Qura method.
-    Map 'Unknown' city to 'Riyadh' and handle invalid or future dates with fallbacks.
+    Map 'Unknown' city to 'Riyadh' and handle invalid dates with fallbacks.
     """
     if city == 'Unknown':
         city = 'Riyadh'
@@ -325,53 +324,68 @@ def get_prayer_times_unified(city, date, prayer='all'):
         'Ar Rass': 'Ar Rass', 'Unaizah': 'Unaizah', 'NEOM': 'Tabuk'
     }
 
+    # Fallback times only for when API completely fails
     jeddah_fallback_times = {
         'fajr': '04:45', 'dhuhr': '12:00', 'asr': '15:30', 'maghrib': '17:45', 'isha': '19:15'
+    }
+    
+    riyadh_fallback_times = {
+        'fajr': '05:35', 'dhuhr': '12:15', 'asr': '15:25', 'maghrib': '17:35', 'isha': '19:05'
     }
 
     api_city = city_mapping.get(city, city)
     date_str = date.strftime('%d-%m-%Y') if isinstance(date, (datetime.date, datetime.datetime)) else str(date)
 
     try:
+        # Try the API first, regardless of how far in the future the date is
         url = f"http://api.aladhan.com/v1/timingsByCity/{date_str}?city={api_city}&country=Saudi%20Arabia&method=4"
-        response = requests.get(url)
+        st.write(f"Trying API call: {url}")  # Debug info
+        response = requests.get(url, timeout=10)
         data = response.json()
 
-        if response.status_code != 200 or data.get('code') != 200:
-            st.error(f"API request failed for {city} on {date_str}: Status {response.status_code}")
-            if city == 'Jeddah':
-                st.warning(f"Using fallback prayer times for Jeddah on {date_str}.")
-                return {
-                    'timings': jeddah_fallback_times,
-                    'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
+        if response.status_code == 200 and data.get('code') == 200:
+            # API call successful
+            timings = data['data']['timings']
+            prayer_times = {
+                'timings': {
+                    'fajr': timings['Fajr'], 'dhuhr': timings['Dhuhr'], 'asr': timings['Asr'],
+                    'maghrib': timings['Maghrib'], 'isha': timings['Isha']
+                },
+                'minutes': {
+                    'fajr_minutes': time_string_to_minutes(timings['Fajr']),
+                    'dhuhr_minutes': time_string_to_minutes(timings['Dhuhr']),
+                    'asr_minutes': time_string_to_minutes(timings['Asr']),
+                    'maghrib_minutes': time_string_to_minutes(timings['Maghrib']),
+                    'isha_minutes': time_string_to_minutes(timings['Isha'])
                 }
-            return {'error': f'API request failed for {city} on {date_str}'}
-
-        timings = data['data']['timings']
-        prayer_times = {
-            'timings': {
-                'fajr': timings['Fajr'], 'dhuhr': timings['Dhuhr'], 'asr': timings['Asr'],
-                'maghrib': timings['Maghrib'], 'isha': timings['Isha']
-            },
-            'minutes': {
-                'fajr_minutes': time_string_to_minutes(timings['Fajr']),
-                'dhuhr_minutes': time_string_to_minutes(timings['Dhuhr']),
-                'asr_minutes': time_string_to_minutes(timings['Asr']),
-                'maghrib_minutes': time_string_to_minutes(timings['Maghrib']),
-                'isha_minutes': time_string_to_minutes(timings['Isha'])
             }
-        }
-        return prayer_times
+            st.write(f"API success for {city} on {date_str}: Maghrib={timings['Maghrib']}, Isha={timings['Isha']}")
+            return prayer_times
+        else:
+            # API returned an error response
+            st.warning(f"API returned error for {city} on {date_str}: Status {response.status_code}, Code {data.get('code')}")
+            raise Exception(f"API error: {data.get('status', 'Unknown error')}")
 
     except Exception as e:
-        st.error(f"Unexpected error fetching prayer times for {city} on {date_str}: {e}")
+        # API call failed completely
+        st.error(f"API call failed for {city} on {date_str}: {e}")
+        
+        # Use fallback times only as last resort
         if city == 'Jeddah':
             st.warning(f"Using fallback prayer times for Jeddah on {date_str}.")
             return {
                 'timings': jeddah_fallback_times,
                 'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in jeddah_fallback_times.items()}
             }
-        return {'error': f'Error fetching prayer times: {str(e)}'}
+        elif city == 'Riyadh':
+            st.warning(f"Using fallback prayer times for Riyadh on {date_str}.")
+            return {
+                'timings': riyadh_fallback_times,
+                'minutes': {f"{prayer}_minutes": time_string_to_minutes(time) for prayer, time in riyadh_fallback_times.items()}
+            }
+        else:
+            # For other cities, return error
+            return {'error': f'No fallback times available for {city} on {date_str}'}
 
 
 
@@ -2725,6 +2739,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
