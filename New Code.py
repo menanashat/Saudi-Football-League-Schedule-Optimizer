@@ -431,7 +431,7 @@ def minutes_to_time_string(total_minutes):
 
 def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     """
-    Calculates three match start times per day: Maghrib - 53 min, Isha - 53 min, and 21:00.
+    Calculates three match start times per day: Maghrib - 51 min, Isha - 51 min, and 21:00.
     Ensures matches avoid prayer times or place prayers in halftime.
     """
     result = {
@@ -471,9 +471,9 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     st.write(f"  Maghrib: {result['maghrib_time']} = {maghrib_minutes} minutes")
     st.write(f"  Isha: {result['isha_time']} = {isha_minutes} minutes")
 
-    # Generate slots: Maghrib - 53 min, Isha - 53 min, 21:00
-    maghrib_slot_minutes = maghrib_minutes - 53
-    isha_slot_minutes = isha_minutes - 53
+    # Generate slots: Maghrib - 51 min, Isha - 51 min, 21:00
+    maghrib_slot_minutes = maghrib_minutes - 51
+    isha_slot_minutes = isha_minutes - 51
     
     maghrib_slot = minutes_to_time_string(maghrib_slot_minutes)
     isha_slot = minutes_to_time_string(isha_slot_minutes)
@@ -481,8 +481,8 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
 
     # Debug: Print the calculated slots
     st.write(f"DEBUG: Calculated match slots:")
-    st.write(f"  Maghrib slot: {result['maghrib_time']} - 53min = {maghrib_minutes} - 53 = {maghrib_slot_minutes} = {maghrib_slot}")
-    st.write(f"  Isha slot: {result['isha_time']} - 53min = {isha_minutes} - 53 = {isha_slot_minutes} = {isha_slot}")
+    st.write(f"  Maghrib slot: {result['maghrib_time']} - 51min = {maghrib_minutes} - 51 = {maghrib_slot_minutes} = {maghrib_slot}")
+    st.write(f"  Isha slot: {result['isha_time']} - 51min = {isha_minutes} - 51 = {isha_slot_minutes} = {isha_slot}")
     st.write(f"  Mandatory slot: {mandatory_slot}")
 
     candidate_slots = [maghrib_slot, isha_slot, mandatory_slot]
@@ -1604,7 +1604,7 @@ def is_international_stop_day(check_date, afc_df):
 
 def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model, profit_model, models_loaded, start_date, end_date, selected_teams=None, selected_cities=None, selected_time_filters=None, matches_per_week=9, matches_from_excel=None):
     """
-    Generates up to 9 match scenarios per match for weeks 7 to 34, using three time slots per day (16:00, Maghrib - 53 min, Isha - 44 min, with 21:00 mandatory),
+    Generates up to 9 match scenarios per match for weeks 7 to 34, using three time slots per day (16:00, Maghrib - 51 min, Isha - 44 min, with 21:00 mandatory),
     incorporating Asr, Maghrib, and Isha prayer times, ensuring matches avoid prayer times or place prayers during halftime.
     """
     st.write("Starting scenario generation for weeks 7 to 34...")
@@ -1745,7 +1745,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                     prayer_key = 'None'
                     prayer_time_str = 'N/A'
                     slot_minutes = time_string_to_minutes(slot_time)
-                    maghrib_slot = time_string_to_minutes(maghrib_time_str) - 53
+                    maghrib_slot = time_string_to_minutes(maghrib_time_str) - 51
                     isha_slot = time_string_to_minutes(isha_time_str) - 44
                     if slot_time == '21:00' or abs(slot_minutes - isha_slot) < 5:
                         prayer_key = 'Isha'
@@ -1838,7 +1838,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                             prayer_key = 'None'
                             prayer_time_str = 'N/A'
                             slot_minutes = time_string_to_minutes(extra_slot)
-                            extra_maghrib_slot = time_string_to_minutes(extra_maghrib_time) - 53
+                            extra_maghrib_slot = time_string_to_minutes(extra_maghrib_time) - 51
                             extra_isha_slot = time_string_to_minutes(extra_isha_time) - 44
                             if extra_slot == '21:00' or abs(slot_minutes - extra_isha_slot) < 5:
                                 prayer_key = 'Isha'
@@ -2820,6 +2820,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
