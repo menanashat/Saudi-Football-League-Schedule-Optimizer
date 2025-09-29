@@ -2542,6 +2542,90 @@ def get_base64_image(image_path):
 team_logos_base64 = {team: get_base64_of_image(path) for team, path in team_logos.items()}
 
 
+def export_week_schedule(selected_week, scenario_manager, week_match_ids):
+    """
+    Export selected matches for a specific week to DataFrame
+    """
+    if not scenario_manager or not week_match_ids:
+        return None
+    
+    selected_scenarios = []
+    
+    # Get all matches for this week
+    week_matches = week_match_ids.get(selected_week, {})
+    
+    for (home_team, away_team), match_id in week_matches.items():
+        if match_id in scenario_manager.selected_scenarios:
+            scenario_id = scenario_manager.selected_scenarios[match_id]
+            scenarios = scenario_manager.get_scenarios_for_match(match_id)
+            
+            for scenario in scenarios:
+                if scenario.scenario_id == scenario_id:
+                    selected_scenarios.append({
+                        'Week': selected_week,
+                        'Home Team': scenario.home_team,
+                        'Away Team': scenario.away_team,
+                        'Date': scenario.date,
+                        'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
+                        'Time': scenario.time,
+                        'City': scenario.city,
+                        'Stadium': scenario.stadium,
+                        'Suitability Score': scenario.suitability_score,
+                        'Attendance %': scenario.attendance_percentage,
+                        'Profit': scenario.profit
+                    })
+                    break
+    
+    if selected_scenarios:
+        df = pd.DataFrame(selected_scenarios)
+        # Sort by date and time
+        df = df.sort_values(by=['Date', 'Time'])
+        return df
+    return None
+
+
+def export_all_scheduled_weeks(scenario_manager, week_match_ids):
+    """
+    Export all selected matches from all weeks to DataFrame
+    """
+    if not scenario_manager or not week_match_ids:
+        return None
+    
+    all_selected_scenarios = []
+    
+    # Iterate through all weeks
+    for week_number, matches in week_match_ids.items():
+        for (home_team, away_team), match_id in matches.items():
+            if match_id in scenario_manager.selected_scenarios:
+                scenario_id = scenario_manager.selected_scenarios[match_id]
+                scenarios = scenario_manager.get_scenarios_for_match(match_id)
+                
+                for scenario in scenarios:
+                    if scenario.scenario_id == scenario_id:
+                        all_selected_scenarios.append({
+                            'Week': week_number,
+                            'Home Team': scenario.home_team,
+                            'Away Team': scenario.away_team,
+                            'Date': scenario.date,
+                            'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
+                            'Time': scenario.time,
+                            'City': scenario.city,
+                            'Stadium': scenario.stadium,
+                            'Suitability Score': scenario.suitability_score,
+                            'Attendance %': scenario.attendance_percentage,
+                            'Profit': scenario.profit
+                        })
+                        break
+    
+    if all_selected_scenarios:
+        df = pd.DataFrame(all_selected_scenarios)
+        # Sort by week, date, and time
+        df = df.sort_values(by=['Week', 'Date', 'Time'])
+        return df
+    return None
+
+
+
 
 def main():
     st.markdown('<h1 style="text-align: center; color: #1e3d59;">⚽ Saudi Football League Schedule Optimizer</h1>', unsafe_allow_html=True)
@@ -2796,10 +2880,10 @@ def main():
             else:
                 st.markdown(f"<div style='text-align: center; font-size: 1.5rem; font-weight: bold; color: #1e3d59; margin: 2rem 0 1rem 0; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;'>Selected Matches - Week {selected_week}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div style='text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 1.5rem;'>{len(week_selected_matches)} matches confirmed for this week</div>", unsafe_allow_html=True)
-
+    
                 # Sort by date and time
                 week_selected_matches.sort(key=lambda x: (x['date'], x['time']))
-
+    
                 # Display only selected matches for the specific week
                 for match in week_selected_matches:
                     home_team = match['home_team']
@@ -2808,10 +2892,10 @@ def main():
                     match_day = datetime.datetime.strptime(match['date'], '%Y-%m-%d').strftime('%A')
                     match_date = match['date']
                     match_id = match['match_id']
-
+    
                     # Check if this match should be highlighted
                     highlight_style = "border: 3px solid #28a745; background-color: #f8fff9;" if selected_match_id == match_id else "border: 2px solid #28a745;"
-
+    
                     # Get logos with inline styles
                     home_logo_base64 = team_logos_base64.get(home_team, '')
                     away_logo_base64 = team_logos_base64.get(away_team, '')
@@ -2827,11 +2911,11 @@ def main():
                     else:
                         initials = ''.join([word[0] for word in away_team.split('-')[:2]]).upper()
                         away_logo_html = f'<div style="width: 80px; height: 80px; background-color: #1e3d59; border-radius: 50%; color: white; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">{initials}</div>'
-
+    
                     st.markdown(f"""
                     <div style="background-color: white; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 1rem 2rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; position: relative; {highlight_style}" id="match_{match_id}">
                         <div style="position: absolute; top: 10px; right: 10px; background-color: #28a745; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;">
-                            ✅ CONFIRMED
+                            CONFIRMED
                         </div>
                         <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
                             <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-start; flex: 1;">
@@ -2854,11 +2938,11 @@ def main():
                 # Show summary with week-specific information
                 st.markdown(f"""
                 <div style="background-color: #e8f5e9; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin-top: 20px;">
-                    <div style="font-weight: bold; color: #155724; font-size: 16px;">📊 Week {selected_week} Summary</div>
+                    <div style="font-weight: bold; color: #155724; font-size: 16px;">Week {selected_week} Summary</div>
                     <div style="color: #155724; margin-top: 5px;">
-                        • Total confirmed matches for Week {selected_week}: {len(week_selected_matches)}<br>
-                        • All matches have been scheduled and confirmed<br>
-                        • Ready for matchday execution
+                        Total confirmed matches for Week {selected_week}: {len(week_selected_matches)}<br>
+                        All matches have been scheduled and confirmed<br>
+                        Ready for matchday execution
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -2879,9 +2963,95 @@ def main():
                     # Clear the selected match after displaying
                     st.session_state.selected_match_id = None
                     st.session_state.active_tab = "Weekly Calendar"
+        
+        # ==================== EXPORT BUTTONS SECTION ====================
+        # Add export buttons at the bottom of the page
+        st.markdown("---")
+        st.markdown("### Export Schedule")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Button 1: Export current week only
+            if st.button(f"Download Week {st.session_state.selected_week} Schedule", key=f"export_week_{st.session_state.selected_week}_fixture", use_container_width=True):
+                df_week = export_week_schedule(
+                    st.session_state.selected_week,
+                    st.session_state.scenario_manager,
+                    st.session_state.week_match_ids
+                )
+                
+                if df_week is not None and not df_week.empty:
+                    # Create Excel file in memory
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        df_week.to_excel(writer, index=False, sheet_name=f'Week {st.session_state.selected_week}')
+                        
+                        # Auto-adjust column widths
+                        worksheet = writer.sheets[f'Week {st.session_state.selected_week}']
+                        for idx, col in enumerate(df_week.columns):
+                            max_length = max(
+                                df_week[col].astype(str).apply(len).max(),
+                                len(col)
+                            ) + 2
+                            worksheet.column_dimensions[chr(65 + idx)].width = max_length
+                    
+                    output.seek(0)
+                    
+                    st.download_button(
+                        label=f"Download Week_{st.session_state.selected_week}_Schedule.xlsx",
+                        data=output,
+                        file_name=f"Week_{st.session_state.selected_week}_Schedule_{datetime.datetime.now().strftime('%Y%m%d')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key=f"download_week_{st.session_state.selected_week}_fixture",
+                        use_container_width=True
+                    )
+                    st.success(f"Week {st.session_state.selected_week} schedule ready for download!")
+                else:
+                    st.warning(f"No matches selected for week {st.session_state.selected_week} yet.")
+        
+        with col2:
+            # Button 2: Export all scheduled weeks
+            if st.button("Download All Scheduled Weeks", key=f"export_all_from_fixture", use_container_width=True):
+                df_all = export_all_scheduled_weeks(
+                    st.session_state.scenario_manager,
+                    st.session_state.week_match_ids
+                )
+                
+                if df_all is not None and not df_all.empty:
+                    # Create Excel file in memory
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        df_all.to_excel(writer, index=False, sheet_name='All Weeks')
+                        
+                        # Auto-adjust column widths
+                        worksheet = writer.sheets['All Weeks']
+                        for idx, col in enumerate(df_all.columns):
+                            max_length = max(
+                                df_all[col].astype(str).apply(len).max(),
+                                len(col)
+                            ) + 2
+                            worksheet.column_dimensions[chr(65 + idx)].width = max_length
+                    
+                    output.seek(0)
+                    
+                    total_weeks = df_all['Week'].nunique()
+                    total_matches = len(df_all)
+                    
+                    st.download_button(
+                        label=f"Download All_Weeks_Schedule.xlsx",
+                        data=output,
+                        file_name=f"All_Weeks_Schedule_{datetime.datetime.now().strftime('%Y%m%d')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key=f"download_all_fixture",
+                        use_container_width=True
+                    )
+                    st.success(f"All schedule ready! ({total_weeks} weeks, {total_matches} matches)")
+                else:
+                    st.warning("No matches have been scheduled yet.")
 
 if __name__ == "__main__":
     main()
+
 
 
 
