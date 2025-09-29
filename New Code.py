@@ -1446,7 +1446,7 @@ def display_week_scenarios(week_number, matches_from_excel):
             # Update scenario availability and store conflict reason
             s.is_available = is_available
             s.conflict_reason = conflict_reason
-            if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
+            if is_available or st.session_state.day_counts.get(scenario_date, 0) < 4:
                 available_scenarios.append(s)
 
         # CRITICAL FIX: Sort scenarios by date and time
@@ -1462,7 +1462,7 @@ def display_week_scenarios(week_number, matches_from_excel):
 
         st.markdown("<div style='font-size: 0.9rem; color: #666;'>Select one scenario</div>", unsafe_allow_html=True)
 
-        day_counts_str = ", ".join([f"{day_names[i]} ({st.session_state.day_counts.get(day, 0)}/3)" for i, day in enumerate(days)])
+        day_counts_str = ", ".join([f"{day_names[i]} ({st.session_state.day_counts.get(day, 0)}/4)" for i, day in enumerate(days)])
         st.markdown(f"<div style='font-size: 0.8rem; color: #888;'>Current day assignments: {day_counts_str}</div>", unsafe_allow_html=True)
 
         cols = st.columns(3)
@@ -1494,8 +1494,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if scenario.is_available:
                     if st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}"):
                         current_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
-                        if st.session_state.day_counts.get(current_date, 0) >= 3:
-                            st.error(f"Cannot select: {current_date} is full (3 matches).")
+                        if st.session_state.day_counts.get(current_date, 0) >= 4:
+                            st.error(f"Cannot select: {current_date} is full (4 matches).")
                         else:
                             # Update day counts
                             st.session_state.day_counts[current_date] = st.session_state.day_counts.get(current_date, 0) + 1
@@ -1858,7 +1858,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                             break
                         extra_day_of_week = extra_day.strftime('%A')
                         extra_calculated = calculate_match_times_for_city_and_date(actual_city, extra_day, teams_data_normalized)
-                        extra_slots = extra_calculated.get('match_slots', ['16:00', '17:18', '21:00'])
+                        extra_slots = extra_calculated.get('match_slots', ['16:00', '17:18','20:30', '21:00'])
                         extra_asr_time = extra_calculated.get('asr_time', '15:30' if actual_city == 'Jeddah' else '15:33')
                         extra_maghrib_time = extra_calculated.get('maghrib_time', '17:45' if actual_city == 'Jeddah' else '17:48')
                         extra_isha_time = extra_calculated.get('isha_time', '19:15' if actual_city == 'Jeddah' else '19:18')
@@ -1943,7 +1943,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                                 
                             st.write(f"Extra scenario {match_scenarios_total} for {home_team} vs {away_team}: {extra_day} {extra_slot} ({prayer_key} at {prayer_time_str}, {'Available' if is_available_extra else 'Unavailable'})")
 
-            scenarios_for_match = scenarios_for_match[:9]
+            scenarios_for_match = scenarios_for_match[:12]
             
             # Sort scenarios by date and time before storing
             scenarios_for_match.sort(key=lambda s: (
@@ -2882,6 +2882,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
