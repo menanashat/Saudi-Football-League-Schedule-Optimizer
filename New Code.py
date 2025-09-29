@@ -22,7 +22,7 @@ from typing import Dict
 from functools import lru_cache
 import unicodedata # Added for Excel loading
 import re # Added for Excel loading
-
+import io
 
 # Set page configuration
 st.set_page_config(
@@ -3051,6 +3051,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
