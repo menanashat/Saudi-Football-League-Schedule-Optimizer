@@ -428,7 +428,7 @@ def minutes_to_time_string(total_minutes):
         return f"{hours:02d}:{minutes:02d}"
     except:
         return "00:00"
-    def round_time_smart(time_minutes, asr_minutes, maghrib_minutes, isha_minutes):
+def round_time_smart(time_minutes, asr_minutes, maghrib_minutes, isha_minutes):
     """
     Smart rounding of match time to nearest 5-minute interval based on prayer conflicts.
     Rounds to: :00, :05, :10, :15, :20, :25, :30, :35, :40, :45, :50, :55
@@ -2882,6 +2882,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
