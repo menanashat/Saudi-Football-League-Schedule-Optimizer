@@ -1446,7 +1446,7 @@ def display_week_scenarios(week_number, matches_from_excel):
             # Update scenario availability and store conflict reason
             s.is_available = is_available
             s.conflict_reason = conflict_reason
-            if is_available or st.session_state.day_counts.get(scenario_date, 0) < 4:
+            if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
 
         # CRITICAL FIX: Sort scenarios by date and time
@@ -1462,7 +1462,7 @@ def display_week_scenarios(week_number, matches_from_excel):
 
         st.markdown("<div style='font-size: 0.9rem; color: #666;'>Select one scenario</div>", unsafe_allow_html=True)
 
-        day_counts_str = ", ".join([f"{day_names[i]} ({st.session_state.day_counts.get(day, 0)}/4)" for i, day in enumerate(days)])
+        day_counts_str = ", ".join([f"{day_names[i]} ({st.session_state.day_counts.get(day, 0)}/3)" for i, day in enumerate(days)])
         st.markdown(f"<div style='font-size: 0.8rem; color: #888;'>Current day assignments: {day_counts_str}</div>", unsafe_allow_html=True)
 
         cols = st.columns(3)
@@ -1494,8 +1494,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if scenario.is_available:
                     if st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}"):
                         current_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
-                        if st.session_state.day_counts.get(current_date, 0) >= 4:
-                            st.error(f"Cannot select: {current_date} is full (4 matches).")
+                        if st.session_state.day_counts.get(current_date, 0) >= 3:
+                            st.error(f"Cannot select: {current_date} is full (3 matches).")
                         else:
                             # Update day counts
                             st.session_state.day_counts[current_date] = st.session_state.day_counts.get(current_date, 0) + 1
@@ -2882,6 +2882,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
