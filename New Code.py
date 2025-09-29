@@ -429,7 +429,6 @@ def minutes_to_time_string(total_minutes):
     except:
         return "00:00"
     
-    
 def round_time_smart(time_minutes, asr_minutes, maghrib_minutes, isha_minutes):
     """
     Smart rounding of match time to nearest 5-minute interval based on prayer conflicts.
@@ -505,8 +504,8 @@ def round_time_smart(time_minutes, asr_minutes, maghrib_minutes, isha_minutes):
 
 def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     """
-    Enhanced version with smart time rounding to nearest 5-minute interval for ALL times.
-    Calculates FOUR match start times per day: Maghrib - 51 min, Isha - 51 min, 20:30 (mandatory), and 21:00 (mandatory).
+    Enhanced version with smart time rounding to :35 or :40 for ALL times.
+    Calculates three match start times per day: Maghrib - 51 min, Isha - 51 min, and 21:00.
     Ensures matches avoid prayer times or place prayers in halftime.
     """
     result = {
@@ -539,13 +538,12 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     st.write(f"  Maghrib: {result['maghrib_time']} = {maghrib_minutes} minutes")
     st.write(f"  Isha: {result['isha_time']} = {isha_minutes} minutes")
 
-    # Generate initial slots: Maghrib - 51 min, Isha - 51 min, 20:30 (mandatory), 21:00 (mandatory)
+    # Generate initial slots: Maghrib - 51 min, Isha - 51 min, 21:00
     maghrib_slot_minutes = maghrib_minutes - 51
     isha_slot_minutes = isha_minutes - 51
-    mandatory_slot_2030_minutes = time_string_to_minutes("20:30")  # NEW: 20:30 mandatory
-    mandatory_slot_2100_minutes = time_string_to_minutes("21:00")  # Existing 21:00 mandatory
+    mandatory_slot_minutes = time_string_to_minutes("21:00")
     
-    # Apply smart rounding to calculated slots (NOT to mandatory slots)
+    # Apply smart rounding to ALL slots
     st.write(f"DEBUG: Before rounding - Maghrib slot: {minutes_to_time_string(maghrib_slot_minutes)}")
     maghrib_slot_minutes = round_time_smart(maghrib_slot_minutes, asr_minutes, maghrib_minutes, isha_minutes)
     st.write(f"DEBUG: After rounding - Maghrib slot: {minutes_to_time_string(maghrib_slot_minutes)}")
@@ -554,22 +552,20 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
     isha_slot_minutes = round_time_smart(isha_slot_minutes, asr_minutes, maghrib_minutes, isha_minutes)
     st.write(f"DEBUG: After rounding - Isha slot: {minutes_to_time_string(isha_slot_minutes)}")
     
-    # Mandatory slots are NOT rounded
-    st.write(f"DEBUG: Mandatory slot 20:30 - NOT ROUNDED (mandatory)")
-    st.write(f"DEBUG: Mandatory slot 21:00 - NOT ROUNDED (mandatory)")
+    st.write(f"DEBUG: Before rounding - Mandatory slot: {minutes_to_time_string(mandatory_slot_minutes)}")
+    mandatory_slot_minutes = round_time_smart(mandatory_slot_minutes, asr_minutes, maghrib_minutes, isha_minutes)
+    st.write(f"DEBUG: After rounding - Mandatory slot: {minutes_to_time_string(mandatory_slot_minutes)}")
     
     maghrib_slot = minutes_to_time_string(maghrib_slot_minutes)
     isha_slot = minutes_to_time_string(isha_slot_minutes)
-    mandatory_slot_2030 = minutes_to_time_string(mandatory_slot_2030_minutes)
-    mandatory_slot_2100 = minutes_to_time_string(mandatory_slot_2100_minutes)
+    mandatory_slot = minutes_to_time_string(mandatory_slot_minutes)
 
-    st.write(f"DEBUG: All match slots:")
-    st.write(f"  Maghrib slot: {maghrib_slot} (rounded)")
-    st.write(f"  Isha slot: {isha_slot} (rounded)")
-    st.write(f"  Mandatory slot: {mandatory_slot_2030} (NOT rounded)")
-    st.write(f"  Mandatory slot: {mandatory_slot_2100} (NOT rounded)")
+    st.write(f"DEBUG: All rounded match slots:")
+    st.write(f"  Maghrib slot: {maghrib_slot}")
+    st.write(f"  Isha slot: {isha_slot}")
+    st.write(f"  Mandatory slot: {mandatory_slot}")
 
-    candidate_slots = [maghrib_slot, isha_slot, mandatory_slot_2030, mandatory_slot_2100]
+    candidate_slots = [maghrib_slot, isha_slot, mandatory_slot]
 
     # Check for prayer conflicts in each slot
     valid_slots = []
@@ -577,7 +573,6 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
         start_minutes = time_string_to_minutes(start_time)
         end_minutes = start_minutes + 120  # 2-hour match
         prayer_conflict = False
-        conflict_prayer = None
         
         for prayer_name, prayer_minutes in [('Asr', asr_minutes), ('Maghrib', maghrib_minutes), ('Isha', isha_minutes)]:
             if start_minutes <= prayer_minutes <= end_minutes:
@@ -586,21 +581,15 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
                 
                 if not (halftime_start <= prayer_minutes <= halftime_end):
                     prayer_conflict = True
-                    conflict_prayer = prayer_name
                     st.write(f"DEBUG: {start_time} conflicts with {prayer_name}")
                     break
         
         if not prayer_conflict:
             valid_slots.append(start_time)
             st.write(f"DEBUG: ✅ {start_time} is VALID")
-        else:
-            # For mandatory slots, still add them even if they conflict (just note the conflict)
-            if start_time in [mandatory_slot_2030, mandatory_slot_2100]:
-                valid_slots.append(start_time)
-                st.write(f"DEBUG: ⚠️ {start_time} is MANDATORY (added despite {conflict_prayer} conflict)")
 
-    # Fill to exactly 4 slots if needed
-    if len(valid_slots) < 4:
+    # Fill to exactly 3 slots if needed
+    if len(valid_slots) < 3:
         gap_available = maghrib_minutes - asr_minutes
         if gap_available >= 150:
             gap_start = asr_minutes + 30
@@ -628,7 +617,7 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
                 st.write(f"DEBUG: Added gap slot {gap_time}")
     
     # If we still need more slots, try alternative times with rounding
-    if len(valid_slots) < 4:
+    if len(valid_slots) < 3:
         alternative_times = [
             isha_minutes - 60,  # Isha - 60 min
             maghrib_minutes - 30,  # Maghrib - 30 min
@@ -636,7 +625,7 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
         ]
         
         for alt_time in alternative_times:
-            if len(valid_slots) >= 4:
+            if len(valid_slots) >= 3:
                 break
             
             # Apply smart rounding to alternative times
@@ -662,14 +651,12 @@ def calculate_match_times_for_city_and_date(city, match_date, teams_data=None):
                     valid_slots.append(alt_time_str)
                     st.write(f"DEBUG: Added alternative slot {alt_time_str}")
     
-    # Sort and limit to 4 slots
-    valid_slots_sorted = sorted(set(valid_slots), key=time_string_to_minutes)[:4]
+    # Sort and limit to 3 slots
+    valid_slots_sorted = sorted(set(valid_slots), key=time_string_to_minutes)[:3]
     result["match_slots"] = valid_slots_sorted
     
     st.write(f"Final match slots for {city} on {match_date}: {result['match_slots']}")
     return result
-
-
 
 # CSS styling
 st.markdown("""
@@ -1668,7 +1655,6 @@ def is_international_stop_day(check_date, afc_df):
                     continue
     return False, ""
 
-
 def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model, profit_model, models_loaded, start_date, end_date, selected_teams=None, selected_cities=None, selected_time_filters=None, matches_per_week=9, matches_from_excel=None):
     """
     Generates up to 9 match scenarios per match for weeks 7 to 34, using three time slots per day (16:00, Maghrib - 51 min, Isha - 44 min, with 21:00 mandatory),
@@ -1767,7 +1753,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                 day_of_week = day_names[days.index(day)]
 
                 calculated = calculate_match_times_for_city_and_date(actual_city, day, teams_data_normalized)
-                match_slots = calculated.get('match_slots', ['16:00', '17:18', '20:30','21:00'])
+                match_slots = calculated.get('match_slots', ['16:00', '17:18', '21:00'])
                 asr_time_str = calculated.get('asr_time', '15:30' if actual_city == 'Jeddah' else '15:33')
                 maghrib_time_str = calculated.get('maghrib_time', '17:45' if actual_city == 'Jeddah' else '17:48')
                 isha_time_str = calculated.get('isha_time', '19:15' if actual_city == 'Jeddah' else '19:18')
@@ -1800,7 +1786,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                 slots_for_day = [s for s in match_slots if s not in used_slots_per_day[day]]
 
                 for slot_time in slots_for_day:
-                    if match_scenarios_total >=12:
+                    if match_scenarios_total >= 9:
                         break
                     try:
                         slot_hour, slot_minute = map(int, slot_time.split(":"))
@@ -1858,7 +1844,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                 if match_scenarios_total < 9:
                     extra_days = [d for d in available_days if d != day and st.session_state.day_counts.get(d.strftime('%A'), {}).get(d, 0) < 3]
                     for extra_day in extra_days:
-                        if match_scenarios_total >=12:
+                        if match_scenarios_total >= 9:
                             break
                         extra_day_of_week = extra_day.strftime('%A')
                         extra_calculated = calculate_match_times_for_city_and_date(actual_city, extra_day, teams_data_normalized)
@@ -1893,7 +1879,7 @@ def generate_full_schedule_with_isha(teams_data, weather_data, attendance_model,
                         extra_conflict_reason = "; ".join(extra_conflict_parts) if extra_conflict_parts else ""
 
                         for extra_slot in [s for s in extra_slots if s not in used_slots_per_day.get(extra_day, set())]:
-                            if match_scenarios_total >= 12:
+                            if match_scenarios_total >= 9:
                                 break
                             try:
                                 slot_hour, slot_minute = map(int, extra_slot.split(":"))
