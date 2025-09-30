@@ -339,7 +339,7 @@ def get_prayer_times_unified(city, date, prayer='all'):
     try:
         # Try the API first, regardless of how far in the future the date is
         url = f"http://api.aladhan.com/v1/timingsByCity/{date_str}?city={api_city}&country=Saudi%20Arabia&method=4"
-        st.write(f"Trying API call: {url}")  # Debug info
+        # st.write(f"Trying API call: {url}")  # Debug info
         response = requests.get(url, timeout=10)
         data = response.json()
 
@@ -359,7 +359,7 @@ def get_prayer_times_unified(city, date, prayer='all'):
                     'isha_minutes': time_string_to_minutes(timings['Isha'])
                 }
             }
-            st.write(f"API success for {city} on {date_str}: Maghrib={timings['Maghrib']}, Isha={timings['Isha']}")
+            # st.write(f"API success for {city} on {date_str}: Maghrib={timings['Maghrib']}, Isha={timings['Isha']}")
             return prayer_times
         else:
             # API returned an error response
@@ -2568,16 +2568,16 @@ def export_week_schedule(week_number, scenario_manager, week_match_ids):
                     
                     matches_data.append({
                         'Week': week_number,
-                        'Match ID': match_id,
                         'Home Team': scenario.home_team,
                         'Away Team': scenario.away_team,
+                        'Maghrib Prayer': maghrib_time,
+                        'Isha Prayer': isha_time,
                         'Date': scenario.date,
                         'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
                         'Time': scenario.time,
                         'Stadium': scenario.stadium,
                         'City': scenario.city,
-                        'Maghrib Prayer': maghrib_time,
-                        'Isha Prayer': isha_time
+
                     })
                     break
     
@@ -2623,16 +2623,16 @@ def export_all_scheduled_weeks(scenario_manager, week_match_ids):
                     
                     matches_data.append({
                         'Week': week_number,
-                        'Match ID': match_id,
                         'Home Team': scenario.home_team,
                         'Away Team': scenario.away_team,
+                        'Maghrib Prayer': maghrib_time,
+                        'Isha Prayer': isha_time,
                         'Date': scenario.date,
                         'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
                         'Time': scenario.time,
                         'Stadium': scenario.stadium,
                         'City': scenario.city,
-                        'Maghrib Prayer': maghrib_time,
-                        'Isha Prayer': isha_time
+
                     })
                     break
     
