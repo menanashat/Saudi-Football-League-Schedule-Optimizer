@@ -2541,88 +2541,109 @@ def get_base64_image(image_path):
 # Preload Base64 logos once
 team_logos_base64 = {team: get_base64_of_image(path) for team, path in team_logos.items()}
 
-
-def export_week_schedule(selected_week, scenario_manager, week_match_ids):
-    """
-    Export selected matches for a specific week to DataFrame
-    """
-    if not scenario_manager or not week_match_ids:
+def export_week_schedule(week_number, scenario_manager, week_match_ids):
+    """Export schedule for a specific week with prayer times"""
+    selected_scenarios = scenario_manager.selected_scenarios
+    
+    if not selected_scenarios:
         return None
     
-    selected_scenarios = []
+    # Get match IDs for the specified week
+    week_matches = week_match_ids.get(week_number, {})
     
-    # Get all matches for this week
-    week_matches = week_match_ids.get(selected_week, {})
-    
-    for (home_team, away_team), match_id in week_matches.items():
-        if match_id in scenario_manager.selected_scenarios:
-            scenario_id = scenario_manager.selected_scenarios[match_id]
+    # Collect match data for this week
+    matches_data = []
+    for match_id, scenario_id in selected_scenarios.items():
+        if match_id in week_matches.values():
             scenarios = scenario_manager.get_scenarios_for_match(match_id)
-            
             for scenario in scenarios:
                 if scenario.scenario_id == scenario_id:
-                    selected_scenarios.append({
-                        'Week': selected_week,
+                    # Get prayer times for this match's city and date
+                    match_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
+                    prayer_times = get_prayer_times_unified(scenario.city, match_date, prayer='all')
+                    
+                    # Extract Maghrib and Isha times
+                    maghrib_time = prayer_times.get('timings', {}).get('maghrib', 'N/A')
+                    isha_time = prayer_times.get('timings', {}).get('isha', 'N/A')
+                    
+                    matches_data.append({
+                        'Week': week_number,
+                        'Match ID': match_id,
                         'Home Team': scenario.home_team,
                         'Away Team': scenario.away_team,
                         'Date': scenario.date,
                         'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
                         'Time': scenario.time,
-                        'City': scenario.city,
                         'Stadium': scenario.stadium,
-                        'Suitability Score': scenario.suitability_score,
-                        'Attendance %': scenario.attendance_percentage,
-                        'Profit': scenario.profit
+                        'City': scenario.city,
+                        'Maghrib Prayer': maghrib_time,
+                        'Isha Prayer': isha_time
                     })
                     break
     
-    if selected_scenarios:
-        df = pd.DataFrame(selected_scenarios)
-        # Sort by date and time
-        df = df.sort_values(by=['Date', 'Time'])
-        return df
-    return None
+    if not matches_data:
+        return None
+    
+    # Create DataFrame and sort by date and time
+    df = pd.DataFrame(matches_data)
+    df = df.sort_values(['Date', 'Time'])
+    
+    return df
 
 
 def export_all_scheduled_weeks(scenario_manager, week_match_ids):
-    """
-    Export all selected matches from all weeks to DataFrame
-    """
-    if not scenario_manager or not week_match_ids:
+    """Export schedule for all weeks with prayer times"""
+    selected_scenarios = scenario_manager.selected_scenarios
+    
+    if not selected_scenarios:
         return None
     
-    all_selected_scenarios = []
+    # Collect match data for all weeks
+    matches_data = []
     
-    # Iterate through all weeks
-    for week_number, matches in week_match_ids.items():
-        for (home_team, away_team), match_id in matches.items():
-            if match_id in scenario_manager.selected_scenarios:
-                scenario_id = scenario_manager.selected_scenarios[match_id]
-                scenarios = scenario_manager.get_scenarios_for_match(match_id)
-                
-                for scenario in scenarios:
-                    if scenario.scenario_id == scenario_id:
-                        all_selected_scenarios.append({
-                            'Week': week_number,
-                            'Home Team': scenario.home_team,
-                            'Away Team': scenario.away_team,
-                            'Date': scenario.date,
-                            'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
-                            'Time': scenario.time,
-                            'City': scenario.city,
-                            'Stadium': scenario.stadium,
-                            'Suitability Score': scenario.suitability_score,
-                            'Attendance %': scenario.attendance_percentage,
-                            'Profit': scenario.profit
-                        })
-                        break
+    for match_id, scenario_id in selected_scenarios.items():
+        # Find which week this match belongs to
+        week_number = None
+        for week, match_ids in week_match_ids.items():
+            if match_id in match_ids.values():
+                week_number = week
+                break
+        
+        if week_number is not None:
+            scenarios = scenario_manager.get_scenarios_for_match(match_id)
+            for scenario in scenarios:
+                if scenario.scenario_id == scenario_id:
+                    # Get prayer times for this match's city and date
+                    match_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
+                    prayer_times = get_prayer_times_unified(scenario.city, match_date, prayer='all')
+                    
+                    # Extract Maghrib and Isha times
+                    maghrib_time = prayer_times.get('timings', {}).get('maghrib', 'N/A')
+                    isha_time = prayer_times.get('timings', {}).get('isha', 'N/A')
+                    
+                    matches_data.append({
+                        'Week': week_number,
+                        'Match ID': match_id,
+                        'Home Team': scenario.home_team,
+                        'Away Team': scenario.away_team,
+                        'Date': scenario.date,
+                        'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
+                        'Time': scenario.time,
+                        'Stadium': scenario.stadium,
+                        'City': scenario.city,
+                        'Maghrib Prayer': maghrib_time,
+                        'Isha Prayer': isha_time
+                    })
+                    break
     
-    if all_selected_scenarios:
-        df = pd.DataFrame(all_selected_scenarios)
-        # Sort by week, date, and time
-        df = df.sort_values(by=['Week', 'Date', 'Time'])
-        return df
-    return None
+    if not matches_data:
+        return None
+    
+    # Create DataFrame and sort by week, date, and time
+    df = pd.DataFrame(matches_data)
+    df = df.sort_values(['Week', 'Date', 'Time'])
+    
+    return df
 
 
 
@@ -3051,7 +3072,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
