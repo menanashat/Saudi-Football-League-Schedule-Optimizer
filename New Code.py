@@ -134,11 +134,13 @@ class ScenarioManager:
         for match_id, scenarios in self.scenarios.items():
             if match_id == selected_match_id:
                 continue
+            # ONLY remove scenarios with TEAM conflicts on the same date
+            # DO NOT remove based on stadium conflicts
             self.scenarios[match_id] = [
                 s for s in scenarios 
-                if not self._scenarios_conflict(selected_scenario, s)
-            ]
-    
+                if not (s.date == selected_scenario.date and 
+                       ({s.home_team, s.away_team}.intersection({selected_scenario.home_team, selected_scenario.away_team})))
+            ]    
     def _scenarios_conflict(self, scenario1, scenario2):
         """Check if two scenarios conflict (same time/date/stadium or team conflicts)"""
         if scenario1.date == scenario2.date and scenario1.stadium == scenario2.stadium:
@@ -3415,6 +3417,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
