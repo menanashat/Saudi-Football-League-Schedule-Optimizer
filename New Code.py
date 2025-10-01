@@ -224,6 +224,67 @@ def is_team_available(team, match_date):
     return True, ""
 
 
+CITY_STADIUMS = {
+    'Jeddah': [
+        'Alinma Stadium',
+        'Prince Abdullah Al-Faisal Stadium',
+        'King Abdullah Sports City Stadium (The Jewel)'
+    ],
+    'Riyadh': [
+        'Kingdom Arena',
+        'King Saud University Stadium (Al-Oul Park)',
+        'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)',
+        'Prince Faisal bin Fahd Stadium'
+    ],
+    'Dammam': [
+        'Al-Ettifaq Club Stadium',
+        'Prince Mohammed bin Fahad (Dammam)',
+        'Prince Mohammed bin Fahd Stadium'
+    ],
+    'Al Khobar': [
+        'Mohammed Bin Fahd Stadiu',
+        'Prince Mohammed bin Fahd Stadium'
+    ],
+    'Buraidah': [
+        'Taawoun Club Stadium (Buraydah)',
+        'King Abdullah Sports City (Buraydah)'
+    ],
+    'Ar Rass': [
+        'Al Hazem Club Stadium'
+    ],
+    'Al-Mubarraz': [
+        'Al-Fateh Club Stadium'
+    ],
+    'Saihat': [
+        'Mohammed Bin Fahd Stadium'
+    ],
+    'Al Majmaah': [
+        'Al Majmaah Sports City'
+    ],
+    'Khamis Mushait': [
+        'Damac Club Stadium (Khamis Mushait)'
+    ],
+    'Abha': [
+        'Prince Hathloul bin Abdulaziz Sport Staduim',
+        'Prince Sultan Sports City (Abha)',
+        'Al Hazem Club Stadium'
+    ],
+    'NEOM': [
+        'NEOM Stadium',
+        'King Khalid Sports City Stadium'
+    ],
+    'Unaizah': [
+        'King Abdullah Sport City'
+    ],
+    'Najran': [
+        'Prince Hathloul Sports City'
+    ],
+    'Tabuk': [
+        'King Khalid Sports City Stadium'
+    ]
+}
+
+
 STADIUM_UNAVAILABILITY = {
     'King Abdullah Sports City Stadium (The Jewel)': {
         'unavailable': (datetime.date(2025, 12, 1), datetime.date(2025, 12, 31)),
@@ -353,52 +414,84 @@ def is_stadium_available(stadium, match_date):
         if unavailable_start <= match_date <= unavailable_end:
             return False
     return True
-
+    
 
 def get_available_stadiums_for_team(team, match_date):
     """
     Get list of available and unavailable stadiums for a team on a specific date.
     Returns tuple: (available_stadiums, unavailable_stadiums)
-    available_stadiums: [(stadium_name, city, is_primary), ...]
-    unavailable_stadiums: [(stadium_name, city, is_primary, reason), ...]
+    
+    Available stadiums are ordered as:
+    1. Primary stadium (if available)
+    2. Alternative stadiums defined for the team (if available)
+    3. Other stadiums in the same city (if available)
+    
+    available_stadiums: [(stadium_name, city, stadium_type), ...]
+        stadium_type: 'Primary', 'Alternative', or 'Other City Stadium'
+    unavailable_stadiums: [(stadium_name, city, stadium_type, reason), ...]
     """
     if team not in TEAM_STADIUMS:
         return [], []
     
     team_info = TEAM_STADIUMS[team]
+    team_city = team_info['city']
     available_stadiums = []
     unavailable_stadiums = []
     
-    # Check primary stadium
+    # Track which stadiums we've already processed
+    processed_stadiums = set()
+    
+    # 1. Check primary stadium
     primary_stadium = team_info['primary']
+    processed_stadiums.add(primary_stadium)
+    
     if is_stadium_available(primary_stadium, match_date):
-        available_stadiums.append((primary_stadium, team_info['city'], True))
+        available_stadiums.append((primary_stadium, team_city, 'Primary'))
     else:
         # Get unavailability reason
         if primary_stadium in STADIUM_UNAVAILABILITY:
             unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[primary_stadium]['unavailable']
             reason = f"Unavailable from {unavailable_start.strftime('%Y-%m-%d')} to {unavailable_end.strftime('%Y-%m-%d')}"
-            unavailable_stadiums.append((primary_stadium, team_info['city'], True, reason))
+            unavailable_stadiums.append((primary_stadium, team_city, 'Primary', reason))
+            
+            # Add the automatic alternative if not already processed
+            alt = STADIUM_UNAVAILABILITY[primary_stadium]['alternative']
+            if alt not in processed_stadiums:
+                processed_stadiums.add(alt)
+                if is_stadium_available(alt, match_date):
+                    available_stadiums.append((alt, team_city, 'Alternative'))
     
-    # Check alternative stadiums
+    # 2. Check alternative stadiums defined for the team
     for alt_stadium in team_info['alternatives']:
-        if is_stadium_available(alt_stadium, match_date):
-            available_stadiums.append((alt_stadium, team_info['city'], False))
-        else:
-            # Get unavailability reason for alternative
-            if alt_stadium in STADIUM_UNAVAILABILITY:
-                unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[alt_stadium]['unavailable']
-                reason = f"Unavailable from {unavailable_start.strftime('%Y-%m-%d')} to {unavailable_end.strftime('%Y-%m-%d')}"
-                unavailable_stadiums.append((alt_stadium, team_info['city'], False, reason))
+        if alt_stadium not in processed_stadiums:
+            processed_stadiums.add(alt_stadium)
+            
+            if is_stadium_available(alt_stadium, match_date):
+                available_stadiums.append((alt_stadium, team_city, 'Alternative'))
+            else:
+                # Get unavailability reason for alternative
+                if alt_stadium in STADIUM_UNAVAILABILITY:
+                    unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[alt_stadium]['unavailable']
+                    reason = f"Unavailable from {unavailable_start.strftime('%Y-%m-%d')} to {unavailable_end.strftime('%Y-%m-%d')}"
+                    unavailable_stadiums.append((alt_stadium, team_city, 'Alternative', reason))
     
-    # If primary is unavailable but has alternative in STADIUM_UNAVAILABILITY
-    if not is_stadium_available(primary_stadium, match_date) and primary_stadium in STADIUM_UNAVAILABILITY:
-        alt = STADIUM_UNAVAILABILITY[primary_stadium]['alternative']
-        if alt not in [s[0] for s in available_stadiums] and alt not in [s[0] for s in unavailable_stadiums]:
-            if is_stadium_available(alt, match_date):
-                available_stadiums.append((alt, team_info['city'], False))
+    # 3. Add other stadiums in the same city
+    if team_city in CITY_STADIUMS:
+        for city_stadium in CITY_STADIUMS[team_city]:
+            if city_stadium not in processed_stadiums:
+                processed_stadiums.add(city_stadium)
+                
+                if is_stadium_available(city_stadium, match_date):
+                    available_stadiums.append((city_stadium, team_city, 'Other City Stadium'))
+                else:
+                    # Check if this stadium has unavailability info
+                    if city_stadium in STADIUM_UNAVAILABILITY:
+                        unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[city_stadium]['unavailable']
+                        reason = f"Unavailable from {unavailable_start.strftime('%Y-%m-%d')} to {unavailable_end.strftime('%Y-%m-%d')}"
+                        unavailable_stadiums.append((city_stadium, team_city, 'Other City Stadium', reason))
     
     return available_stadiums, unavailable_stadiums
+
 
 
 def update_scenario_stadium(scenario, new_stadium, new_city):
@@ -1609,8 +1702,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Display unavailable stadiums with reasons
                 if unavailable_stadiums:
                     st.markdown("<div style='margin-top: 5px; margin-bottom: 10px;'>", unsafe_allow_html=True)
-                    for stad, city, is_prim, reason in unavailable_stadiums:
-                        stadium_type = "Primary" if is_prim else "Alternative"
+                    for stad, city, stadium_type, reason in unavailable_stadiums:
                         st.markdown(
                             f"""
                             <div style='background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 8px; margin: 5px 0; font-size: 0.85rem;'>
@@ -1624,13 +1716,13 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Stadium dropdown menu
                 if available_stadiums and len(available_stadiums) > 1:
                     stadium_options = [
-                        f"{stad} ({'Primary' if is_prim else 'Alternative'})" 
-                        for stad, city, is_prim in available_stadiums
+                        f"{stad} ({stadium_type})" 
+                        for stad, city, stadium_type in available_stadiums
                     ]
                     
                     # Find current stadium index
                     current_index = 0
-                    for idx, (stad, city, is_prim) in enumerate(available_stadiums):
+                    for idx, (stad, city, stadium_type) in enumerate(available_stadiums):
                         if stad == scenario.stadium:
                             current_index = idx
                             break
@@ -1702,6 +1794,7 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
+        
         
 def get_teams_for_match(match_id):
     """
@@ -3220,6 +3313,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
