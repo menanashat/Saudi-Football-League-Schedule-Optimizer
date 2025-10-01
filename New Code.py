@@ -565,6 +565,7 @@ def update_scenario_stadium(scenario, new_stadium, new_city):
 
 
 
+
 def get_alternative_stadium(stadium, match_date):
     """
     Get the alternative stadium if the primary stadium is unavailable.
@@ -1782,47 +1783,55 @@ def display_week_scenarios(week_number, matches_from_excel):
                 
                 # Stadium dropdown menu (only show if there are multiple options)
                 if available_stadiums and len(available_stadiums) >= 1:
-                    # Separate selectable and non-selectable stadiums
-                    selectable_stadiums = [(stad, city, stype, selectable) for stad, city, stype, selectable in available_stadiums if selectable]
-                    booked_stadiums = [(stad, city, stype, selectable) for stad, city, stype, selectable in available_stadiums if not selectable]
-                    
-                    # Create options list
+                    # Create options list with all stadiums (selectable and booked)
                     stadium_options = []
-                    for stad, city, stadium_type, _ in selectable_stadiums:
-                        stadium_options.append(f"{stad} ({stadium_type})")
+                    stadium_data = []  # Store (stadium, city, is_selectable) for validation
                     
-                    # Add booked stadiums as disabled options (shown but not selectable)
-                    for stad, city, stadium_type, _ in booked_stadiums:
-                        stadium_options.append(f"{stad} ({stadium_type}) - BOOKED")
+                    for stad, city, stadium_type, is_selectable in available_stadiums:
+                        if is_selectable:
+                            stadium_options.append(f"{stad} ({stadium_type})")
+                        else:
+                            stadium_options.append(f"🔒 {stad} ({stadium_type}) - Already Booked")
+                        stadium_data.append((stad, city, is_selectable))
                     
                     if len(stadium_options) > 1:
                         # Find current stadium index
                         current_index = 0
-                        for idx, (stad, city, stadium_type, _) in enumerate(selectable_stadiums + booked_stadiums):
+                        for idx, (stad, city, is_selectable) in enumerate(stadium_data):
                             if stad == scenario.stadium:
                                 current_index = idx
                                 break
                         
-                        # Show info about booked stadiums
-                        if booked_stadiums:
-                            st.info(f"⚠️ Some stadiums are already booked at {scenario.time} and cannot be selected.")
+                        # Count booked stadiums
+                        booked_count = sum(1 for _, _, sel in stadium_data if not sel)
+                        if booked_count > 0:
+                            st.markdown(
+                                f"<div style='background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 8px; margin: 5px 0; font-size: 0.85rem;'>"
+                                f"<span style='color: #856404;'>⚠️ {booked_count} stadium(s) already booked at {scenario.time}</span>"
+                                f"</div>",
+                                unsafe_allow_html=True
+                            )
                         
                         selected_stadium_option = st.selectbox(
                             "Select Stadium:",
                             options=stadium_options,
                             index=current_index,
                             key=f"stadium_select_{scenario.scenario_id}_{week_number}_{match_id}",
-                            help="Stadiums marked as 'BOOKED' are already reserved for another match at this time."
+                            help="Stadiums with 🔒 are already booked for another match at this time."
                         )
                         
-                        # Only update if a selectable stadium was chosen
-                        if " - BOOKED" not in selected_stadium_option:
-                            selected_index = stadium_options.index(selected_stadium_option)
-                            if selected_index < len(selectable_stadiums):
-                                new_stadium, new_city, _, _ = selectable_stadiums[selected_index]
-                                if new_stadium != scenario.stadium:
-                                    scenario.stadium = new_stadium
-                                    scenario.city = new_city
+                        # Validate and update stadium selection
+                        selected_index = stadium_options.index(selected_stadium_option)
+                        new_stadium, new_city, is_selectable = stadium_data[selected_index]
+                        
+                        # Check if user tried to select a booked stadium
+                        if not is_selectable and new_stadium != scenario.stadium:
+                            st.error(f"❌ Cannot select {new_stadium} - it's already booked at {scenario.time}")
+                            # Keep the current stadium unchanged
+                        elif new_stadium != scenario.stadium and is_selectable:
+                            # Valid selection, update the scenario
+                            scenario.stadium = new_stadium
+                            scenario.city = new_city
                 
                 # Select button
                 if scenario.is_available:
@@ -1876,7 +1885,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}", disabled=True)
 
     if selected_count == len(pairings):
-        st.success(f"All {len(pairings)} matches selected for week {week_number}!")        
+        st.success(f"All {len(pairings)} matches selected for week {week_number}!")       
         
 def get_teams_for_match(match_id):
     """
@@ -3395,6 +3404,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
