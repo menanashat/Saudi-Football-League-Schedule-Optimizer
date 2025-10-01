@@ -1578,8 +1578,8 @@ def display_week_scenarios(week_number, matches_from_excel):
             with cols[i % 3]:
                 scenario_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
                 
-                # Get available stadiums for the home team on this date
-                available_stadiums = get_available_stadiums_for_team(home, scenario_date)
+                # Get available and unavailable stadiums for the home team on this date
+                available_stadiums, unavailable_stadiums = get_available_stadiums_for_team(home, scenario_date)
                 
                 if not scenario.is_available:
                     card_color = "#ffebee"
@@ -1605,6 +1605,21 @@ def display_week_scenarios(week_number, matches_from_excel):
                     </div>
                     """, unsafe_allow_html=True
                 )
+                
+                # Display unavailable stadiums with reasons
+                if unavailable_stadiums:
+                    st.markdown("<div style='margin-top: 5px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+                    for stad, city, is_prim, reason in unavailable_stadiums:
+                        stadium_type = "Primary" if is_prim else "Alternative"
+                        st.markdown(
+                            f"""
+                            <div style='background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 8px; margin: 5px 0; font-size: 0.85rem;'>
+                                <div style='color: #d32f2f; font-weight: bold;'>🚫 {stad} ({stadium_type})</div>
+                                <div style='color: #c62828; margin-top: 2px;'>{reason}</div>
+                            </div>
+                            """, unsafe_allow_html=True
+                        )
+                    st.markdown("</div>", unsafe_allow_html=True)
                 
                 # Stadium dropdown menu
                 if available_stadiums and len(available_stadiums) > 1:
@@ -1687,7 +1702,7 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-
+        
 def get_teams_for_match(match_id):
     """
     Helper function to get team names for a given match_id.
@@ -3205,6 +3220,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
