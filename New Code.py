@@ -224,33 +224,6 @@ def is_team_available(team, match_date):
     return True, ""
 
 
-TEAM_UNAVAILABILITY = {
-    'Al-Ittihad': [
-        datetime.date(2025, 9, 15), datetime.date(2025, 9, 30), datetime.date(2025, 10, 20),
-        datetime.date(2025, 11, 4), datetime.date(2025, 11, 24), datetime.date(2025, 12, 23),
-        datetime.date(2026, 2, 10), datetime.date(2026, 2, 17)
-    ],
-    'Al-Ahli': [
-        datetime.date(2025, 9, 15), datetime.date(2025, 9, 29), datetime.date(2025, 10, 20),
-        datetime.date(2025, 11, 4), datetime.date(2025, 11, 24), datetime.date(2025, 12, 22),
-        datetime.date(2026, 2, 9), datetime.date(2026, 2, 16)
-    ],
-    'Al-Hilal': [
-        datetime.date(2025, 9, 16), datetime.date(2025, 9, 29), datetime.date(2025, 10, 21),
-        datetime.date(2025, 11, 3), datetime.date(2025, 11, 25), datetime.date(2025, 12, 22),
-        datetime.date(2026, 2, 9), datetime.date(2026, 2, 16)
-    ],
-    'Al-Nassr': [
-        datetime.date(2025, 9, 17), datetime.date(2025, 10, 1), datetime.date(2025, 10, 22),
-        datetime.date(2025, 11, 5), datetime.date(2025, 11, 26), datetime.date(2025, 12, 24)
-    ],
-    'Al-Shabab': [
-        datetime.date(2025, 10, 1), datetime.date(2025, 10, 21), datetime.date(2025, 11, 5),
-        datetime.date(2025, 12, 24), datetime.date(2026, 2, 1), datetime.date(2026, 2, 17)
-    ]
-}
-
-# Add this to your constants section at the top of your file
 STADIUM_UNAVAILABILITY = {
     'King Abdullah Sports City Stadium (The Jewel)': {
         'unavailable': (datetime.date(2025, 12, 1), datetime.date(2025, 12, 31)),
@@ -384,32 +357,48 @@ def is_stadium_available(stadium, match_date):
 
 def get_available_stadiums_for_team(team, match_date):
     """
-    Get list of available stadiums for a team on a specific date.
-    Returns list of tuples: [(stadium_name, city, is_primary), ...]
+    Get list of available and unavailable stadiums for a team on a specific date.
+    Returns tuple: (available_stadiums, unavailable_stadiums)
+    available_stadiums: [(stadium_name, city, is_primary), ...]
+    unavailable_stadiums: [(stadium_name, city, is_primary, reason), ...]
     """
     if team not in TEAM_STADIUMS:
-        return []
+        return [], []
     
     team_info = TEAM_STADIUMS[team]
     available_stadiums = []
+    unavailable_stadiums = []
     
     # Check primary stadium
     primary_stadium = team_info['primary']
     if is_stadium_available(primary_stadium, match_date):
         available_stadiums.append((primary_stadium, team_info['city'], True))
+    else:
+        # Get unavailability reason
+        if primary_stadium in STADIUM_UNAVAILABILITY:
+            unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[primary_stadium]['unavailable']
+            reason = f"Unavailable from {unavailable_start.strftime('%Y-%m-%d')} to {unavailable_end.strftime('%Y-%m-%d')}"
+            unavailable_stadiums.append((primary_stadium, team_info['city'], True, reason))
     
     # Check alternative stadiums
     for alt_stadium in team_info['alternatives']:
         if is_stadium_available(alt_stadium, match_date):
             available_stadiums.append((alt_stadium, team_info['city'], False))
+        else:
+            # Get unavailability reason for alternative
+            if alt_stadium in STADIUM_UNAVAILABILITY:
+                unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[alt_stadium]['unavailable']
+                reason = f"Unavailable from {unavailable_start.strftime('%Y-%m-%d')} to {unavailable_end.strftime('%Y-%m-%d')}"
+                unavailable_stadiums.append((alt_stadium, team_info['city'], False, reason))
     
     # If primary is unavailable but has alternative in STADIUM_UNAVAILABILITY
     if not is_stadium_available(primary_stadium, match_date) and primary_stadium in STADIUM_UNAVAILABILITY:
         alt = STADIUM_UNAVAILABILITY[primary_stadium]['alternative']
-        if alt not in [s[0] for s in available_stadiums]:
-            available_stadiums.append((alt, team_info['city'], False))
+        if alt not in [s[0] for s in available_stadiums] and alt not in [s[0] for s in unavailable_stadiums]:
+            if is_stadium_available(alt, match_date):
+                available_stadiums.append((alt, team_info['city'], False))
     
-    return available_stadiums
+    return available_stadiums, unavailable_stadiums
 
 
 def update_scenario_stadium(scenario, new_stadium, new_city):
@@ -419,6 +408,7 @@ def update_scenario_stadium(scenario, new_stadium, new_city):
     # You may want to recalculate suitability_score, attendance, profit here
     # based on the new stadium's capacity and other factors
     return scenario
+
 
 
 def get_alternative_stadium(stadium, match_date):
@@ -3215,6 +3205,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
