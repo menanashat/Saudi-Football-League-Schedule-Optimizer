@@ -405,7 +405,6 @@ TEAM_STADIUMS = {
     }
 }
 
-
 def is_stadium_available(stadium, match_date):
     """Check if a stadium is available on a given date."""
     if stadium in STADIUM_UNAVAILABILITY:
@@ -462,8 +461,9 @@ def get_available_stadiums_for_team(team, match_date, match_time, current_match_
     processed_stadiums = set()
     
     # Helper function to check if stadium is booked at this time
-    def is_stadium_booked(stadium_name, date, time):
-        booking_key = (stadium_name, date, time)
+    def is_stadium_booked(stadium_name, date_str, time):
+        """Check if stadium is booked. date_str should be in 'YYYY-MM-DD' format"""
+        booking_key = (stadium_name, date_str, time)
         if booking_key in stadium_bookings:
             # Check if it's not the current match being edited
             booked_match_id = stadium_bookings[booking_key]
@@ -471,19 +471,22 @@ def get_available_stadiums_for_team(team, match_date, match_time, current_match_
                 return True
         return False
     
+    # Convert match_date to string format for consistency
+    match_date_str = match_date.strftime('%Y-%m-%d') if isinstance(match_date, datetime.date) else match_date
+    
     # 1. Check primary stadium
     primary_stadium = team_info['primary']
     processed_stadiums.add(primary_stadium)
     
     if is_stadium_available(primary_stadium, match_date):
-        is_booked = is_stadium_booked(primary_stadium, match_date.strftime('%Y-%m-%d'), match_time)
+        is_booked = is_stadium_booked(primary_stadium, match_date_str, match_time)
         available_stadiums.append((primary_stadium, team_city, 'Primary', not is_booked))
         if is_booked:
             unavailable_stadiums.append((
                 primary_stadium, 
                 team_city, 
                 'Primary', 
-                f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                f"Already booked at {match_time} on {match_date_str}"
             ))
     else:
         # Get unavailability reason
@@ -497,14 +500,14 @@ def get_available_stadiums_for_team(team, match_date, match_time, current_match_
             if alt not in processed_stadiums:
                 processed_stadiums.add(alt)
                 if is_stadium_available(alt, match_date):
-                    is_booked = is_stadium_booked(alt, match_date.strftime('%Y-%m-%d'), match_time)
+                    is_booked = is_stadium_booked(alt, match_date_str, match_time)
                     available_stadiums.append((alt, team_city, 'Alternative', not is_booked))
                     if is_booked:
                         unavailable_stadiums.append((
                             alt, 
                             team_city, 
                             'Alternative', 
-                            f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                            f"Already booked at {match_time} on {match_date_str}"
                         ))
     
     # 2. Check alternative stadiums defined for the team
@@ -513,14 +516,14 @@ def get_available_stadiums_for_team(team, match_date, match_time, current_match_
             processed_stadiums.add(alt_stadium)
             
             if is_stadium_available(alt_stadium, match_date):
-                is_booked = is_stadium_booked(alt_stadium, match_date.strftime('%Y-%m-%d'), match_time)
+                is_booked = is_stadium_booked(alt_stadium, match_date_str, match_time)
                 available_stadiums.append((alt_stadium, team_city, 'Alternative', not is_booked))
                 if is_booked:
                     unavailable_stadiums.append((
                         alt_stadium, 
                         team_city, 
                         'Alternative', 
-                        f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                        f"Already booked at {match_time} on {match_date_str}"
                     ))
             else:
                 # Get unavailability reason for alternative
@@ -536,14 +539,14 @@ def get_available_stadiums_for_team(team, match_date, match_time, current_match_
                 processed_stadiums.add(city_stadium)
                 
                 if is_stadium_available(city_stadium, match_date):
-                    is_booked = is_stadium_booked(city_stadium, match_date.strftime('%Y-%m-%d'), match_time)
+                    is_booked = is_stadium_booked(city_stadium, match_date_str, match_time)
                     available_stadiums.append((city_stadium, team_city, 'Other City Stadium', not is_booked))
                     if is_booked:
                         unavailable_stadiums.append((
                             city_stadium, 
                             team_city, 
                             'Other City Stadium', 
-                            f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                            f"Already booked at {match_time} on {match_date_str}"
                         ))
                 else:
                     # Check if this stadium has unavailability info
@@ -1871,7 +1874,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                             
                             st.success(f"Selected {scenario.date} {scenario.time} for {home} vs {away}.")
                             
-                            # Remove conflicting scenarios
+                            # IMPORTANT: Do NOT remove scenarios from other matches based on stadium conflicts
+                            # Only remove scenarios if the DAY is completely full (3 matches)
                             if st.session_state.day_counts[current_date] >= 3:
                                 for m_id in st.session_state.scenario_manager.scenarios:
                                     if m_id not in st.session_state.scenario_manager.selected_scenarios:
@@ -1885,7 +1889,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}", disabled=True)
 
     if selected_count == len(pairings):
-        st.success(f"All {len(pairings)} matches selected for week {week_number}!")       
+        st.success(f"All {len(pairings)} matches selected for week {week_number}!")
         
 def get_teams_for_match(match_id):
     """
@@ -3404,6 +3408,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
