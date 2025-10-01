@@ -413,11 +413,27 @@ def is_stadium_available(stadium, match_date):
         if unavailable_start <= match_date <= unavailable_end:
             return False
     return True
-    
 
-def get_available_stadiums_for_team(team, match_date):
+
+def get_stadium_bookings(scenario_manager):
     """
-    Get list of available and unavailable stadiums for a team on a specific date.
+    Get all stadium bookings from selected scenarios.
+    Returns dict: {(stadium_name, date, time): match_id}
+    """
+    bookings = {}
+    for match_id, scenario_id in scenario_manager.selected_scenarios.items():
+        scenarios = scenario_manager.get_scenarios_for_match(match_id)
+        for scenario in scenarios:
+            if scenario.scenario_id == scenario_id:
+                key = (scenario.stadium, scenario.date, scenario.time)
+                bookings[key] = match_id
+                break
+    return bookings
+
+
+def get_available_stadiums_for_team(team, match_date, match_time, current_match_id=None, scenario_manager=None):
+    """
+    Get list of available and unavailable stadiums for a team on a specific date and time.
     Returns tuple: (available_stadiums, unavailable_stadiums)
     
     Available stadiums are ordered as:
@@ -425,8 +441,8 @@ def get_available_stadiums_for_team(team, match_date):
     2. Alternative stadiums defined for the team (if available)
     3. Other stadiums in the same city (if available)
     
-    available_stadiums: [(stadium_name, city, stadium_type), ...]
-        stadium_type: 'Primary', 'Alternative', or 'Other City Stadium'
+    available_stadiums: [(stadium_name, city, stadium_type, is_selectable), ...]
+        is_selectable: False if stadium is booked at this time
     unavailable_stadiums: [(stadium_name, city, stadium_type, reason), ...]
     """
     if team not in TEAM_STADIUMS:
@@ -437,15 +453,38 @@ def get_available_stadiums_for_team(team, match_date):
     available_stadiums = []
     unavailable_stadiums = []
     
+    # Get current stadium bookings
+    stadium_bookings = {}
+    if scenario_manager:
+        stadium_bookings = get_stadium_bookings(scenario_manager)
+    
     # Track which stadiums we've already processed
     processed_stadiums = set()
+    
+    # Helper function to check if stadium is booked at this time
+    def is_stadium_booked(stadium_name, date, time):
+        booking_key = (stadium_name, date, time)
+        if booking_key in stadium_bookings:
+            # Check if it's not the current match being edited
+            booked_match_id = stadium_bookings[booking_key]
+            if current_match_id is None or booked_match_id != current_match_id:
+                return True
+        return False
     
     # 1. Check primary stadium
     primary_stadium = team_info['primary']
     processed_stadiums.add(primary_stadium)
     
     if is_stadium_available(primary_stadium, match_date):
-        available_stadiums.append((primary_stadium, team_city, 'Primary'))
+        is_booked = is_stadium_booked(primary_stadium, match_date.strftime('%Y-%m-%d'), match_time)
+        available_stadiums.append((primary_stadium, team_city, 'Primary', not is_booked))
+        if is_booked:
+            unavailable_stadiums.append((
+                primary_stadium, 
+                team_city, 
+                'Primary', 
+                f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+            ))
     else:
         # Get unavailability reason
         if primary_stadium in STADIUM_UNAVAILABILITY:
@@ -458,7 +497,15 @@ def get_available_stadiums_for_team(team, match_date):
             if alt not in processed_stadiums:
                 processed_stadiums.add(alt)
                 if is_stadium_available(alt, match_date):
-                    available_stadiums.append((alt, team_city, 'Alternative'))
+                    is_booked = is_stadium_booked(alt, match_date.strftime('%Y-%m-%d'), match_time)
+                    available_stadiums.append((alt, team_city, 'Alternative', not is_booked))
+                    if is_booked:
+                        unavailable_stadiums.append((
+                            alt, 
+                            team_city, 
+                            'Alternative', 
+                            f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                        ))
     
     # 2. Check alternative stadiums defined for the team
     for alt_stadium in team_info['alternatives']:
@@ -466,7 +513,15 @@ def get_available_stadiums_for_team(team, match_date):
             processed_stadiums.add(alt_stadium)
             
             if is_stadium_available(alt_stadium, match_date):
-                available_stadiums.append((alt_stadium, team_city, 'Alternative'))
+                is_booked = is_stadium_booked(alt_stadium, match_date.strftime('%Y-%m-%d'), match_time)
+                available_stadiums.append((alt_stadium, team_city, 'Alternative', not is_booked))
+                if is_booked:
+                    unavailable_stadiums.append((
+                        alt_stadium, 
+                        team_city, 
+                        'Alternative', 
+                        f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                    ))
             else:
                 # Get unavailability reason for alternative
                 if alt_stadium in STADIUM_UNAVAILABILITY:
@@ -481,7 +536,15 @@ def get_available_stadiums_for_team(team, match_date):
                 processed_stadiums.add(city_stadium)
                 
                 if is_stadium_available(city_stadium, match_date):
-                    available_stadiums.append((city_stadium, team_city, 'Other City Stadium'))
+                    is_booked = is_stadium_booked(city_stadium, match_date.strftime('%Y-%m-%d'), match_time)
+                    available_stadiums.append((city_stadium, team_city, 'Other City Stadium', not is_booked))
+                    if is_booked:
+                        unavailable_stadiums.append((
+                            city_stadium, 
+                            team_city, 
+                            'Other City Stadium', 
+                            f"Already booked at {match_time} on {match_date.strftime('%Y-%m-%d')}"
+                        ))
                 else:
                     # Check if this stadium has unavailability info
                     if city_stadium in STADIUM_UNAVAILABILITY:
@@ -490,7 +553,6 @@ def get_available_stadiums_for_team(team, match_date):
                         unavailable_stadiums.append((city_stadium, team_city, 'Other City Stadium', reason))
     
     return available_stadiums, unavailable_stadiums
-
 
 
 def update_scenario_stadium(scenario, new_stadium, new_city):
@@ -1670,8 +1732,14 @@ def display_week_scenarios(week_number, matches_from_excel):
             with cols[i % 3]:
                 scenario_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
                 
-                # Get available and unavailable stadiums for the home team on this date
-                available_stadiums, unavailable_stadiums = get_available_stadiums_for_team(home, scenario_date)
+                # Get available and unavailable stadiums for the home team on this date and time
+                available_stadiums, unavailable_stadiums = get_available_stadiums_for_team(
+                    home, 
+                    scenario_date, 
+                    scenario.time,
+                    current_match_id=match_id,
+                    scenario_manager=st.session_state.scenario_manager
+                )
                 
                 if not scenario.is_available:
                     card_color = "#ffebee"
@@ -1712,33 +1780,49 @@ def display_week_scenarios(week_number, matches_from_excel):
                         )
                     st.markdown("</div>", unsafe_allow_html=True)
                 
-                # Stadium dropdown menu
-                if available_stadiums and len(available_stadiums) > 1:
-                    stadium_options = [
-                        f"{stad} ({stadium_type})" 
-                        for stad, city, stadium_type in available_stadiums
-                    ]
+                # Stadium dropdown menu (only show if there are multiple options)
+                if available_stadiums and len(available_stadiums) >= 1:
+                    # Separate selectable and non-selectable stadiums
+                    selectable_stadiums = [(stad, city, stype, selectable) for stad, city, stype, selectable in available_stadiums if selectable]
+                    booked_stadiums = [(stad, city, stype, selectable) for stad, city, stype, selectable in available_stadiums if not selectable]
                     
-                    # Find current stadium index
-                    current_index = 0
-                    for idx, (stad, city, stadium_type) in enumerate(available_stadiums):
-                        if stad == scenario.stadium:
-                            current_index = idx
-                            break
+                    # Create options list
+                    stadium_options = []
+                    for stad, city, stadium_type, _ in selectable_stadiums:
+                        stadium_options.append(f"{stad} ({stadium_type})")
                     
-                    selected_stadium_option = st.selectbox(
-                        "Select Stadium:",
-                        options=stadium_options,
-                        index=current_index,
-                        key=f"stadium_select_{scenario.scenario_id}_{week_number}_{match_id}"
-                    )
+                    # Add booked stadiums as disabled options (shown but not selectable)
+                    for stad, city, stadium_type, _ in booked_stadiums:
+                        stadium_options.append(f"{stad} ({stadium_type}) - BOOKED")
                     
-                    # Update scenario if stadium changed
-                    selected_index = stadium_options.index(selected_stadium_option)
-                    new_stadium, new_city, _ = available_stadiums[selected_index]
-                    if new_stadium != scenario.stadium:
-                        scenario.stadium = new_stadium
-                        scenario.city = new_city
+                    if len(stadium_options) > 1:
+                        # Find current stadium index
+                        current_index = 0
+                        for idx, (stad, city, stadium_type, _) in enumerate(selectable_stadiums + booked_stadiums):
+                            if stad == scenario.stadium:
+                                current_index = idx
+                                break
+                        
+                        # Show info about booked stadiums
+                        if booked_stadiums:
+                            st.info(f"⚠️ Some stadiums are already booked at {scenario.time} and cannot be selected.")
+                        
+                        selected_stadium_option = st.selectbox(
+                            "Select Stadium:",
+                            options=stadium_options,
+                            index=current_index,
+                            key=f"stadium_select_{scenario.scenario_id}_{week_number}_{match_id}",
+                            help="Stadiums marked as 'BOOKED' are already reserved for another match at this time."
+                        )
+                        
+                        # Only update if a selectable stadium was chosen
+                        if " - BOOKED" not in selected_stadium_option:
+                            selected_index = stadium_options.index(selected_stadium_option)
+                            if selected_index < len(selectable_stadiums):
+                                new_stadium, new_city, _, _ = selectable_stadiums[selected_index]
+                                if new_stadium != scenario.stadium:
+                                    scenario.stadium = new_stadium
+                                    scenario.city = new_city
                 
                 # Select button
                 if scenario.is_available:
@@ -1792,8 +1876,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}", disabled=True)
 
     if selected_count == len(pairings):
-        st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-        
+        st.success(f"All {len(pairings)} matches selected for week {week_number}!")        
         
 def get_teams_for_match(match_id):
     """
@@ -3312,6 +3395,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
