@@ -1082,7 +1082,7 @@ def correct_team_locations(teams_data):
         'Al-Fayha': {'city': 'Al Majmaah', 'stadium': 'Al Majmaah Sports City', 'stadium_capacity': 20000},
         'Al-Kholood': {'city': 'Ar Rass', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
         'Al-riyadh': {'city': 'Riyadh', 'stadium': 'Prince Faisal bin Fahd Stadium', 'stadium_capacity': 15000},
-        'Al-Najma': {'city': 'Unaizah', 'stadium': 'King Abdullah Sport City', 'stadium_capacity': 20000},
+        'Al-Najma': {'city': 'Buraydah', 'stadium': 'King Abdullah Sport City', 'stadium_capacity': 20000},
         'NEOM': {'city': 'NEOM', 'stadium': 'NEOM Stadium', 'stadium_capacity': 20000}
     }
 
@@ -1179,7 +1179,7 @@ def load_data():
         'home_city': [
             'Buraidah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
             'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Abha', 'Abha',
-            'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
+            'Al Khobar', 'Riyadh', 'Buraydah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
         'home_stadium': [
             'Taawoun Club Stadium (Buraydah)', 'Kingdom Arena', 'King Saud University Stadium (Al-Oul Park)',
@@ -3220,7 +3220,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
