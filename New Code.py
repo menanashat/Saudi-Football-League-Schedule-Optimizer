@@ -569,6 +569,7 @@ def update_scenario_stadium(scenario, new_stadium, new_city):
 
 
 
+
 def get_alternative_stadium(stadium, match_date):
     """
     Get the alternative stadium if the primary stadium is unavailable.
@@ -1683,9 +1684,11 @@ def display_week_scenarios(week_number, matches_from_excel):
             continue
 
         available_scenarios = []
+        filtered_out_count = 0
         for s in scenarios:
             scenario_date = datetime.datetime.strptime(s.date, '%Y-%m-%d').date()
             if scenario_date not in days:
+                filtered_out_count += 1
                 continue
             
             # Check team availability
@@ -1716,6 +1719,10 @@ def display_week_scenarios(week_number, matches_from_excel):
             s.conflict_reason = conflict_reason
             if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
+        
+        # Debug: Show why scenarios are missing
+        if filtered_out_count > 0:
+            st.info(f"ℹ️ {filtered_out_count} scenarios for {home} vs {away} were filtered because they're outside the week date range ({days[0]} to {days[-1]})")
 
         # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
@@ -3408,6 +3415,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
