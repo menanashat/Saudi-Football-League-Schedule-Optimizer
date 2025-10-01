@@ -250,6 +250,7 @@ TEAM_UNAVAILABILITY = {
     ]
 }
 
+# Add this to your constants section at the top of your file
 STADIUM_UNAVAILABILITY = {
     'King Abdullah Sports City Stadium (The Jewel)': {
         'unavailable': (datetime.date(2025, 12, 1), datetime.date(2025, 12, 31)),
@@ -276,6 +277,148 @@ STADIUM_UNAVAILABILITY = {
         'alternative': 'Damac Club Stadium (Khamis Mushait)'
     }
 }
+
+# Team stadium mappings (primary and alternative stadiums)
+TEAM_STADIUMS = {
+    'Al-Ittihad': {
+        'primary': 'King Abdullah Sports City Stadium (The Jewel)',
+        'city': 'Jeddah',
+        'alternatives': ['Prince Abdullah Al-Faisal Stadium']
+    },
+    'Al-Hilal': {
+        'primary': 'Kingdom Arena',
+        'city': 'Riyadh',
+        'alternatives': ['Prince Faisal bin Fahd Stadium']
+    },
+    'Al-Nassr': {
+        'primary': 'King Saud University Stadium (Al-Oul Park)',
+        'city': 'Riyadh',
+        'alternatives': ['Prince Faisal bin Fahd Stadium']
+    },
+    'Al-Qadisiyah': {
+        'primary': 'Mohammed Bin Fahd Stadiu',
+        'city': 'Al Khobar',
+        'alternatives': []
+    },
+    'Al-Ahli': {
+        'primary': 'Alinma Stadium',
+        'city': 'Jeddah',
+        'alternatives': ['Prince Abdullah Al-Faisal Stadium']
+    },
+    'Al-Shabab': {
+        'primary': 'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)',
+        'city': 'Riyadh',
+        'alternatives': ['Prince Faisal bin Fahd Stadium']
+    },
+    'Al-Ettifaq': {
+        'primary': 'Al-Ettifaq Club Stadium',
+        'city': 'Dammam',
+        'alternatives': []
+    },
+    'Al-Taawoun': {
+        'primary': 'Taawoun Club Stadium (Buraydah)',
+        'city': 'Buraidah',
+        'alternatives': ['King Abdullah Sports City (Buraydah)']
+    },
+    'Al-Kholood': {
+        'primary': 'Al Hazem Club Stadium',
+        'city': 'Ar Rass',
+        'alternatives': ['King Abdullah Sports City (Buraydah)']
+    },
+    'Al-Fateh': {
+        'primary': 'Al-Fateh Club Stadium',
+        'city': 'Al-Mubarraz',
+        'alternatives': []
+    },
+    'Al-riyadh': {
+        'primary': 'Prince Faisal bin Fahd Stadium',
+        'city': 'Riyadh',
+        'alternatives': []
+    },
+    'Al-Khaleej': {
+        'primary': 'Mohammed Bin Fahd Stadium',
+        'city': 'Saihat',
+        'alternatives': []
+    },
+    'Al-Fayha': {
+        'primary': 'Al Majmaah Sports City',
+        'city': 'Al Majmaah',
+        'alternatives': ['King Abdullah Sports City (Buraydah)']
+    },
+    'Damac': {
+        'primary': 'Damac Club Stadium (Khamis Mushait)',
+        'city': 'Khamis Mushait',
+        'alternatives': ['Prince Sultan Sports City (Abha)']
+    },
+    'Al-Okhdood': {
+        'primary': 'Prince Hathloul bin Abdulaziz Sport Staduim',
+        'city': 'Abha',
+        'alternatives': []
+    },
+    'NEOM': {
+        'primary': 'NEOM Stadium',
+        'city': 'NEOM',
+        'alternatives': []
+    },
+    'Al-Najma': {
+        'primary': 'King Abdullah Sport City',
+        'city': 'Unaizah',
+        'alternatives': []
+    },
+    'Al-Hazem': {
+        'primary': 'Al Hazem Club Stadium',
+        'city': 'Abha',
+        'alternatives': ['King Abdullah Sports City (Buraydah)']
+    }
+}
+
+
+def is_stadium_available(stadium, match_date):
+    """Check if a stadium is available on a given date."""
+    if stadium in STADIUM_UNAVAILABILITY:
+        unavailable_start, unavailable_end = STADIUM_UNAVAILABILITY[stadium]['unavailable']
+        if unavailable_start <= match_date <= unavailable_end:
+            return False
+    return True
+
+
+def get_available_stadiums_for_team(team, match_date):
+    """
+    Get list of available stadiums for a team on a specific date.
+    Returns list of tuples: [(stadium_name, city, is_primary), ...]
+    """
+    if team not in TEAM_STADIUMS:
+        return []
+    
+    team_info = TEAM_STADIUMS[team]
+    available_stadiums = []
+    
+    # Check primary stadium
+    primary_stadium = team_info['primary']
+    if is_stadium_available(primary_stadium, match_date):
+        available_stadiums.append((primary_stadium, team_info['city'], True))
+    
+    # Check alternative stadiums
+    for alt_stadium in team_info['alternatives']:
+        if is_stadium_available(alt_stadium, match_date):
+            available_stadiums.append((alt_stadium, team_info['city'], False))
+    
+    # If primary is unavailable but has alternative in STADIUM_UNAVAILABILITY
+    if not is_stadium_available(primary_stadium, match_date) and primary_stadium in STADIUM_UNAVAILABILITY:
+        alt = STADIUM_UNAVAILABILITY[primary_stadium]['alternative']
+        if alt not in [s[0] for s in available_stadiums]:
+            available_stadiums.append((alt, team_info['city'], False))
+    
+    return available_stadiums
+
+
+def update_scenario_stadium(scenario, new_stadium, new_city):
+    """Update a scenario's stadium and city, and recalculate if needed."""
+    scenario.stadium = new_stadium
+    scenario.city = new_city
+    # You may want to recalculate suitability_score, attendance, profit here
+    # based on the new stadium's capacity and other factors
+    return scenario
 
 
 def get_alternative_stadium(stadium, match_date):
@@ -1305,12 +1448,10 @@ def validate_and_redistribute_matches(matches_from_excel, week_start_dates, matc
         st.write(f"Redistributed week {week}: {[(h, a, d.strftime('%Y-%m-%d')) for h, a, d in redistributed[week]]}")
     return redistributed
 
+# Modified display_week_scenarios function with stadium dropdown
 def display_week_scenarios(week_number, matches_from_excel):
     """
-    Display matches for a week, showing available scenarios (even if zero), with day count tracking.
-    Includes specific conflict reasons (e.g., international break or conflicting team) when unavailable.
-    Handles cases where is_team_available returns a boolean or a tuple.
-    All scenarios are properly sorted by date and time.
+    Display matches for a week with stadium dropdown selection.
     """
     st.markdown(f"### Week {week_number} Match Scenarios")
     if not matches_from_excel:
@@ -1323,39 +1464,27 @@ def display_week_scenarios(week_number, matches_from_excel):
         return
 
     week_start_dates = {
-        7: datetime.date(2025, 10, 30),  # Thursday
-        8: datetime.date(2025, 11, 6),   # Thursday
-        9: datetime.date(2025, 11, 21),  # Friday
-        10: datetime.date(2025, 12, 19), # Friday
-        11: datetime.date(2025, 12, 25), # Thursday
-        12: datetime.date(2025, 12, 29), # Monday
-        13: datetime.date(2026, 1, 2),   # Friday
-        14: datetime.date(2026, 1, 8),   # Thursday
-        15: datetime.date(2026, 1, 12),  # Monday
-        16: datetime.date(2026, 1, 16),  # Friday
-        17: datetime.date(2026, 1, 20),  # Tuesday
-        18: datetime.date(2026, 1, 24),  # Saturday
-        19: datetime.date(2026, 1, 28),  # Wednesday
-        20: datetime.date(2026, 2, 1),   # Friday
-        21: datetime.date(2026, 2, 5),   # Thursday
-        22: datetime.date(2026, 2, 12),  # Monday
-        23: datetime.date(2026, 2, 19),  # Friday
-        24: datetime.date(2026, 2, 26),  # Tuesday
-        25: datetime.date(2026, 3, 5),   # Saturday
-        26: datetime.date(2026, 3, 12),  # Wednesday
-        27: datetime.date(2026, 4, 3),   # Friday
-        28: datetime.date(2026, 4, 9),   # Thursday
-        29: datetime.date(2026, 4, 23),  # Monday
-        30: datetime.date(2026, 4, 28),  # Friday
-        31: datetime.date(2026, 5, 2),   # Tuesday
-        32: datetime.date(2026, 5, 7),   # Saturday
-        33: datetime.date(2026, 5, 13),  # Wednesday
-        34: datetime.date(2026, 5, 21),  # Wednesday
+        7: datetime.date(2025, 10, 30), 8: datetime.date(2025, 11, 6),
+        9: datetime.date(2025, 11, 21), 10: datetime.date(2025, 12, 19),
+        11: datetime.date(2025, 12, 25), 12: datetime.date(2025, 12, 29),
+        13: datetime.date(2026, 1, 2), 14: datetime.date(2026, 1, 8),
+        15: datetime.date(2026, 1, 12), 16: datetime.date(2026, 1, 16),
+        17: datetime.date(2026, 1, 20), 18: datetime.date(2026, 1, 24),
+        19: datetime.date(2026, 1, 28), 20: datetime.date(2026, 2, 1),
+        21: datetime.date(2026, 2, 5), 22: datetime.date(2026, 2, 12),
+        23: datetime.date(2026, 2, 19), 24: datetime.date(2026, 2, 26),
+        25: datetime.date(2026, 3, 5), 26: datetime.date(2026, 3, 12),
+        27: datetime.date(2026, 4, 3), 28: datetime.date(2026, 4, 9),
+        29: datetime.date(2026, 4, 23), 30: datetime.date(2026, 4, 28),
+        31: datetime.date(2026, 5, 2), 32: datetime.date(2026, 5, 7),
+        33: datetime.date(2026, 5, 13), 34: datetime.date(2026, 5, 21),
     }
+    
     thu_date = week_start_dates.get(week_number)
     if not thu_date:
         st.error(f"No start date defined for week {week_number}.")
         return
+    
     days = [thu_date + datetime.timedelta(days=d) for d in range(3)]
     day_names = [day.strftime('%A') for day in days]
 
@@ -1367,9 +1496,9 @@ def display_week_scenarios(week_number, matches_from_excel):
             st.write(f"Debug: No match_id found for {home} vs {away} in week {week_number}")
             continue
 
+        # Check if match is already selected
         if match_id in st.session_state.scenario_manager.selected_scenarios:
             selected_count += 1
-            # Show selected scenario details
             scenario_id = st.session_state.scenario_manager.selected_scenarios[match_id]
             scenarios = st.session_state.scenario_manager.get_scenarios_for_match(match_id)
             selected_scenario = None
@@ -1391,23 +1520,18 @@ def display_week_scenarios(week_number, matches_from_excel):
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Add button to deselect if needed
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
-                    # Remove from selected scenarios
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
-                    # Update day counts
                     current_date = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').date()
                     if st.session_state.day_counts.get(current_date, 0) > 0:
                         st.session_state.day_counts[current_date] -= 1
                     st.success(f"Deselected {home} vs {away}")
                     st.rerun()
-            else:
-                st.markdown(f"✅ {home} vs {away} (Selected - scenario details not found)")
             continue
 
         scenarios = st.session_state.scenario_manager.get_scenarios_for_match(match_id)
         if not scenarios:
-            st.warning(f"No scenarios generated for {home} vs {away}. Check generation or filters.")
+            st.warning(f"No scenarios generated for {home} vs {away}.")
             continue
 
         available_scenarios = []
@@ -1416,17 +1540,15 @@ def display_week_scenarios(week_number, matches_from_excel):
             if scenario_date not in days:
                 continue
             
-            # Handle is_team_available return value (boolean or tuple)
+            # Check team availability
             home_result = is_team_available(home, scenario_date)
             away_result = is_team_available(away, scenario_date)
             
-            # Initialize defaults
             home_available = home_result
-            home_conflict_reason = "Team conflict (unknown reason)"
+            home_conflict_reason = "Team conflict"
             away_available = away_result
-            away_conflict_reason = "Team conflict (unknown reason)"
+            away_conflict_reason = "Team conflict"
             
-            # Check if result is a tuple (is_available, conflict_reason)
             if isinstance(home_result, tuple) and len(home_result) == 2:
                 home_available, home_conflict_reason = home_result
             if isinstance(away_result, tuple) and len(away_result) == 2:
@@ -1434,7 +1556,6 @@ def display_week_scenarios(week_number, matches_from_excel):
             
             is_available = home_available and away_available
             
-            # Create detailed conflict reason
             conflict_parts = []
             if not home_available:
                 conflict_parts.append(f"{home}: {home_conflict_reason}")
@@ -1443,13 +1564,12 @@ def display_week_scenarios(week_number, matches_from_excel):
             
             conflict_reason = "; ".join(conflict_parts) if conflict_parts else ""
             
-            # Update scenario availability and store conflict reason
             s.is_available = is_available
             s.conflict_reason = conflict_reason
             if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
 
-        # CRITICAL FIX: Sort scenarios by date and time
+        # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
             datetime.datetime.strptime(s.date, '%Y-%m-%d').date(),
             datetime.datetime.strptime(s.time, '%H:%M').time()
@@ -1457,10 +1577,8 @@ def display_week_scenarios(week_number, matches_from_excel):
 
         st.subheader(f"{home} vs {away}")
         if not available_scenarios:
-            st.info("No available scenarios (all days may be full or filtered by prayer times or team unavailability).")
+            st.info("No available scenarios.")
             continue
-
-        st.markdown("<div style='font-size: 0.9rem; color: #666;'>Select one scenario</div>", unsafe_allow_html=True)
 
         day_counts_str = ", ".join([f"{day_names[i]} ({st.session_state.day_counts.get(day, 0)}/3)" for i, day in enumerate(days)])
         st.markdown(f"<div style='font-size: 0.8rem; color: #888;'>Current day assignments: {day_counts_str}</div>", unsafe_allow_html=True)
@@ -1468,10 +1586,14 @@ def display_week_scenarios(week_number, matches_from_excel):
         cols = st.columns(3)
         for i, scenario in enumerate(available_scenarios):
             with cols[i % 3]:
-                # Make cards red for unavailable scenarios
+                scenario_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
+                
+                # Get available stadiums for the home team on this date
+                available_stadiums = get_available_stadiums_for_team(home, scenario_date)
+                
                 if not scenario.is_available:
-                    card_color = "#ffebee"  # Light red background
-                    border_color = "#f44336"  # Red border
+                    card_color = "#ffebee"
+                    border_color = "#f44336"
                 else:
                     card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
                     border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
@@ -1479,6 +1601,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                 availability_message = f"<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: {scenario.conflict_reason}</div>" if not scenario.is_available else ""
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
+                
+                # Display scenario card
                 st.markdown(
                     f"""
                     <div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">
@@ -1491,19 +1615,46 @@ def display_week_scenarios(week_number, matches_from_excel):
                     </div>
                     """, unsafe_allow_html=True
                 )
+                
+                # Stadium dropdown menu
+                if available_stadiums and len(available_stadiums) > 1:
+                    stadium_options = [
+                        f"{stad} ({'Primary' if is_prim else 'Alternative'})" 
+                        for stad, city, is_prim in available_stadiums
+                    ]
+                    
+                    # Find current stadium index
+                    current_index = 0
+                    for idx, (stad, city, is_prim) in enumerate(available_stadiums):
+                        if stad == scenario.stadium:
+                            current_index = idx
+                            break
+                    
+                    selected_stadium_option = st.selectbox(
+                        "Select Stadium:",
+                        options=stadium_options,
+                        index=current_index,
+                        key=f"stadium_select_{scenario.scenario_id}_{week_number}_{match_id}"
+                    )
+                    
+                    # Update scenario if stadium changed
+                    selected_index = stadium_options.index(selected_stadium_option)
+                    new_stadium, new_city, _ = available_stadiums[selected_index]
+                    if new_stadium != scenario.stadium:
+                        scenario.stadium = new_stadium
+                        scenario.city = new_city
+                
+                # Select button
                 if scenario.is_available:
                     if st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}"):
                         current_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
                         if st.session_state.day_counts.get(current_date, 0) >= 3:
                             st.error(f"Cannot select: {current_date} is full (3 matches).")
                         else:
-                            # Update day counts
                             st.session_state.day_counts[current_date] = st.session_state.day_counts.get(current_date, 0) + 1
-                            
-                            # Select the scenario
                             st.session_state.scenario_manager.select_scenario(match_id, scenario.scenario_id)
                             
-                            # Store selected match details for calendar and other tabs
+                            # Store match details
                             st.session_state.selected_match_id = match_id
                             st.session_state.match_teams = [home, away]
                             st.session_state.match_date = scenario.date
@@ -1511,25 +1662,18 @@ def display_week_scenarios(week_number, matches_from_excel):
                             st.session_state.match_stadium = scenario.stadium
                             st.session_state.match_city = scenario.city
                             
-                            # Add to schedule_df if it exists
+                            # Update schedule_df
                             if 'schedule_df' in st.session_state:
-                                # Create a new row for the selected match
                                 new_match = pd.DataFrame([{
-                                    'match_id': match_id,
-                                    'home_team': home,
-                                    'away_team': away,
-                                    'date': scenario.date,
-                                    'time': scenario.time,
-                                    'city': scenario.city,
-                                    'stadium': scenario.stadium,
+                                    'match_id': match_id, 'home_team': home, 'away_team': away,
+                                    'date': scenario.date, 'time': scenario.time,
+                                    'city': scenario.city, 'stadium': scenario.stadium,
                                     'suitability_score': scenario.suitability_score,
                                     'attendance_percentage': scenario.attendance_percentage,
-                                    'profit': scenario.profit,
-                                    'week': week_number,
+                                    'profit': scenario.profit, 'week': week_number,
                                     'is_selected': True
                                 }])
                                 
-                                # Remove any existing entry for this match_id and add the new one
                                 if 'match_id' in st.session_state.schedule_df.columns:
                                     st.session_state.schedule_df = st.session_state.schedule_df[
                                         st.session_state.schedule_df['match_id'] != match_id
@@ -1537,9 +1681,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                                 st.session_state.schedule_df = pd.concat([st.session_state.schedule_df, new_match], ignore_index=True)
                             
                             st.success(f"Selected {scenario.date} {scenario.time} for {home} vs {away}.")
-                            st.write(f"Debug: Stored - match_id: {match_id}, teams: {home} vs {away}, date: {scenario.date}")
                             
-                            # Remove scenarios from other matches that conflict with this date/stadium
+                            # Remove conflicting scenarios
                             if st.session_state.day_counts[current_date] >= 3:
                                 for m_id in st.session_state.scenario_manager.scenarios:
                                     if m_id not in st.session_state.scenario_manager.selected_scenarios:
@@ -3072,7 +3215,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
