@@ -228,7 +228,6 @@ CITY_STADIUMS = {
     'Jeddah': [
         'Alinma Stadium',
         'Prince Abdullah Al-Faisal Stadium',
-        'King Abdullah Sports City Stadium (The Jewel)'
     ],
     'Riyadh': [
         'Kingdom Arena',
@@ -286,7 +285,7 @@ CITY_STADIUMS = {
 
 
 STADIUM_UNAVAILABILITY = {
-    'King Abdullah Sports City Stadium (The Jewel)': {
+    'Alinma Stadium': {
         'unavailable': (datetime.date(2025, 12, 1), datetime.date(2025, 12, 31)),
         'alternative': 'Prince Abdullah Al Faisal (Jeddah)'
     },
@@ -315,7 +314,7 @@ STADIUM_UNAVAILABILITY = {
 # Team stadium mappings (primary and alternative stadiums)
 TEAM_STADIUMS = {
     'Al-Ittihad': {
-        'primary': 'King Abdullah Sports City Stadium (The Jewel)',
+        'primary': 'Alinma Stadium',
         'city': 'Jeddah',
         'alternatives': ['Prince Abdullah Al-Faisal Stadium']
     },
@@ -1165,7 +1164,7 @@ def correct_team_locations(teams_data):
         'Al-Fateh': {'city': 'Al-Mubarraz', 'stadium': 'Al-Fateh Club Stadium', 'stadium_capacity': 20000},
         'Al-Hilal': {'city': 'Riyadh', 'stadium': 'Kingdom Arena', 'stadium_capacity': 30000},
         'Al-Ahli': {'city': 'Jeddah', 'stadium': 'Alinma Stadium', 'stadium_capacity': 30000},
-        'Al-Ittihad': {'city': 'Jeddah', 'stadium': 'King Abdullah Sports City Stadium (The Jewel)', 'stadium_capacity': 60000},
+        'Al-Ittihad': {'city': 'Jeddah', 'stadium': 'Alinma Stadium', 'stadium_capacity': 60000},
         'Damac': {'city': 'Khamis Mushait', 'stadium': 'Damac Club Stadium (Khamis Mushait)', 'stadium_capacity': 20000},
         'Al-Okhdood': {'city': 'Abha', 'stadium': 'Prince Hathloul bin Abdulaziz Sport Staduim', 'stadium_capacity': 20000},
         'Al-Hazem': {'city': 'Abha', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
@@ -1276,7 +1275,7 @@ def load_data():
         ],
         'home_stadium': [
             'Taawoun Club Stadium (Buraydah)', 'Kingdom Arena', 'King Saud University Stadium (Al-Oul Park)',
-            'King Abdullah Sports City Stadium (The Jewel)', 'Alinma Stadium',
+            'Alinma Stadium', 'Alinma Stadium',
             'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)', 'Al-Ettifaq Club Stadium',
             'Al-Fateh Club Stadium', 'Al Majmaah Sports City', 'Mohammed Bin Fahd Stadium',
             'Prince Hathloul bin Abdulaziz Sport Staduim', 'Al Hazem Club Stadium', 'Mohammed Bin Fahd Stadiu',
@@ -3313,6 +3312,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
