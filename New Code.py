@@ -1685,12 +1685,13 @@ def display_week_scenarios(week_number, matches_from_excel):
             st.warning(f"No scenarios generated for {home} vs {away}.")
             continue
 
+        # DEBUG: Check initial scenario count
+        st.write(f"DEBUG: Total scenarios for {home} vs {away}: {len(scenarios)}")
+
         available_scenarios = []
-        filtered_out_count = 0
         for s in scenarios:
             scenario_date = datetime.datetime.strptime(s.date, '%Y-%m-%d').date()
             if scenario_date not in days:
-                filtered_out_count += 1
                 continue
             
             # Check team availability
@@ -1721,10 +1722,9 @@ def display_week_scenarios(week_number, matches_from_excel):
             s.conflict_reason = conflict_reason
             if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
-        
-        # Debug: Show why scenarios are missing
-        if filtered_out_count > 0:
-            st.info(f"ℹ️ {filtered_out_count} scenarios for {home} vs {away} were filtered because they're outside the week date range ({days[0]} to {days[-1]})")
+
+        # DEBUG: Check filtered scenario count
+        st.write(f"DEBUG: Available scenarios after filtering: {len(available_scenarios)}")
 
         # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
@@ -1883,8 +1883,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                             
                             st.success(f"Selected {scenario.date} {scenario.time} for {home} vs {away}.")
                             
-                            # IMPORTANT: Do NOT remove scenarios from other matches based on stadium conflicts
-                            # Only remove scenarios if the DAY is completely full (3 matches)
+                            # Remove conflicting scenarios
                             if st.session_state.day_counts[current_date] >= 3:
                                 for m_id in st.session_state.scenario_manager.scenarios:
                                     if m_id not in st.session_state.scenario_manager.selected_scenarios:
@@ -3417,6 +3416,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
