@@ -1683,11 +1683,11 @@ def display_week_scenarios(week_number, matches_from_excel):
         scenarios = st.session_state.scenario_manager.get_scenarios_for_match(match_id)
         
         # Debug: Log scenario details
-        st.write(f"🔍 DEBUG: {home} vs {away}")
-        st.write(f"   - Total scenarios in manager: {len(scenarios)}")
-        if scenarios:
-            scenario_dates = [s.date for s in scenarios]
-            st.write(f"   - Scenario dates: {set(scenario_dates)}")
+        # st.write(f"🔍 DEBUG: {home} vs {away}")
+        # st.write(f"   - Total scenarios in manager: {len(scenarios)}")
+        # if scenarios:
+        #     scenario_dates = [s.date for s in scenarios]
+        #     st.write(f"   - Scenario dates: {set(scenario_dates)}")
         
         if not scenarios:
             st.warning(f"No scenarios generated for {home} vs {away}.")
@@ -1731,9 +1731,9 @@ def display_week_scenarios(week_number, matches_from_excel):
                 available_scenarios.append(s)
         
         # Debug: Show filtering results
-        st.write(f"   - Filtered out (outside week range): {filtered_out_count}")
-        st.write(f"   - Available to display: {len(available_scenarios)}")
-        st.write(f"   - Week days: {[d.strftime('%Y-%m-%d') for d in days]}")
+        # st.write(f"   - Filtered out (outside week range): {filtered_out_count}")
+        # st.write(f"   - Available to display: {len(available_scenarios)}")
+        # st.write(f"   - Week days: {[d.strftime('%Y-%m-%d') for d in days]}")
 
         # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
@@ -3436,6 +3436,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
