@@ -1340,7 +1340,7 @@ def load_data():
         ],
         'home_city': [
             'Buraidah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
-            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Najran', 'Abha',
+            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Najran', 'Ar Rass',
             'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
         'home_stadium': [
@@ -3448,6 +3448,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
