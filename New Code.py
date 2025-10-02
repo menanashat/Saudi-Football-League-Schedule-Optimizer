@@ -571,7 +571,6 @@ def update_scenario_stadium(scenario, new_stadium, new_city):
 
 
 
-
 def get_alternative_stadium(stadium, match_date):
     """
     Get the alternative stadium if the primary stadium is unavailable.
@@ -1681,17 +1680,24 @@ def display_week_scenarios(week_number, matches_from_excel):
             continue
 
         scenarios = st.session_state.scenario_manager.get_scenarios_for_match(match_id)
+        
+        # Debug: Log scenario details
+        st.write(f"🔍 DEBUG: {home} vs {away}")
+        st.write(f"   - Total scenarios in manager: {len(scenarios)}")
+        if scenarios:
+            scenario_dates = [s.date for s in scenarios]
+            st.write(f"   - Scenario dates: {set(scenario_dates)}")
+        
         if not scenarios:
             st.warning(f"No scenarios generated for {home} vs {away}.")
             continue
 
-        # DEBUG: Check initial scenario count
-        st.write(f"DEBUG: Total scenarios for {home} vs {away}: {len(scenarios)}")
-
         available_scenarios = []
+        filtered_out_count = 0
         for s in scenarios:
             scenario_date = datetime.datetime.strptime(s.date, '%Y-%m-%d').date()
             if scenario_date not in days:
+                filtered_out_count += 1
                 continue
             
             # Check team availability
@@ -1722,9 +1728,11 @@ def display_week_scenarios(week_number, matches_from_excel):
             s.conflict_reason = conflict_reason
             if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
-
-        # DEBUG: Check filtered scenario count
-        st.write(f"DEBUG: Available scenarios after filtering: {len(available_scenarios)}")
+        
+        # Debug: Show filtering results
+        st.write(f"   - Filtered out (outside week range): {filtered_out_count}")
+        st.write(f"   - Available to display: {len(available_scenarios)}")
+        st.write(f"   - Week days: {[d.strftime('%Y-%m-%d') for d in days]}")
 
         # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
@@ -1883,7 +1891,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                             
                             st.success(f"Selected {scenario.date} {scenario.time} for {home} vs {away}.")
                             
-                            # Remove conflicting scenarios
+                            # IMPORTANT: Do NOT remove scenarios from other matches based on stadium conflicts
+                            # Only remove scenarios if the DAY is completely full (3 matches)
                             if st.session_state.day_counts[current_date] >= 3:
                                 for m_id in st.session_state.scenario_manager.scenarios:
                                     if m_id not in st.session_state.scenario_manager.selected_scenarios:
@@ -3416,6 +3425,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
