@@ -372,7 +372,7 @@ TEAM_STADIUMS = {
     },
     'Al-Khaleej': {
         'primary': 'Mohammed Bin Fahd Stadium',
-        'city': 'Saihat',
+        'city': 'Dammam',
         'alternatives': []
     },
     'Al-Fayha': {
@@ -1227,7 +1227,7 @@ def correct_team_locations(teams_data):
     Maps missing columns from team_locations and preserves existing columns.
     """
     team_locations = {
-        'Al-Khaleej': {'city': 'Saihat', 'stadium': 'Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
+        'Al-Khaleej': {'city': 'Dammam', 'stadium': 'Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
         'Al-Ettifaq': {'city': 'Dammam', 'stadium': 'EGO Stadium', 'stadium_capacity': 15000},
         'Al-Taawoun': {'city': 'Buraydah', 'stadium': 'Taawoun Club Stadium', 'stadium_capacity': 25000},
         'Al-Fateh': {'city': 'Al-Mubarraz', 'stadium': 'Al-Fateh Club Stadium', 'stadium_capacity': 20000},
@@ -1339,7 +1339,7 @@ def load_data():
         ],
         'home_city': [
             'Buraydah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
-            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Najran', 'Ar Rass',
+            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Dammam', 'Najran', 'Ar Rass',
             'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
         'home_stadium': [
@@ -3447,6 +3447,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
