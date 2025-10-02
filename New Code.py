@@ -385,7 +385,7 @@ TEAM_STADIUMS = {
         'alternatives': ['Prince Sultan Sports City (Abha)']
     },
     'Al-Okhdood': {
-        'primary': 'Prince Hathloul Sport Staduim',
+        'primary': 'Prince Hathloul Sport City',
         'city': 'Najran',
         'alternatives': []
     },
@@ -3446,6 +3446,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
