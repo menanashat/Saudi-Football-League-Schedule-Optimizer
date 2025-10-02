@@ -258,9 +258,6 @@ CITY_STADIUMS = {
     'Al-Mubarraz': [
         'Al-Fateh Club Stadium'
     ],
-    'Saihat': [
-        'Mohammed Bin Fahd Stadium'
-    ],
     'Al Majmaah': [
         'Al Majmaah Sports City'
     ],
@@ -3447,6 +3444,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
