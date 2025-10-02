@@ -267,9 +267,9 @@ CITY_STADIUMS = {
         'Damac Club Stadium (Khamis Mushait)'
     ],
     'Abha': [
-        'Prince Hathloul bin Abdulaziz Sport Staduim',
+
         'Prince Sultan Sports City (Abha)',
-        'Al Hazem Club Stadium'
+
     ],
     'NEOM': [
         'NEOM Stadium',
@@ -3448,6 +3448,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
