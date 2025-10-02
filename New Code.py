@@ -353,7 +353,7 @@ TEAM_STADIUMS = {
     },
     'Al-Taawoun': {
         'primary': 'Taawoun Club Stadium (Buraydah)',
-        'city': 'Buraidah',
+        'city': 'Buraydah',
         'alternatives': ['King Abdullah Sports City (Buraydah)']
     },
     'Al-Kholood': {
@@ -387,8 +387,8 @@ TEAM_STADIUMS = {
         'alternatives': ['Prince Sultan Sports City (Abha)']
     },
     'Al-Okhdood': {
-        'primary': 'Prince Hathloul bin Abdulaziz Sport Staduim',
-        'city': 'Abha',
+        'primary': 'Prince Hathloul Sport Staduim',
+        'city': 'Najran',
         'alternatives': []
     },
     'NEOM': {
@@ -3448,6 +3448,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
