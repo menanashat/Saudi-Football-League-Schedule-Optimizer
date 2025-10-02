@@ -238,7 +238,7 @@ CITY_STADIUMS = {
         'Prince Faisal bin Fahd Stadium'
     ],
     'Dammam': [
-        'Al-Ettifaq Club Stadium',
+        'EGO Stadium'
         'Prince Mohammed bin Fahad (Dammam)',
     ],
     'Al Khobar': [
@@ -345,7 +345,7 @@ TEAM_STADIUMS = {
         'alternatives': ['Prince Faisal bin Fahd Stadium']
     },
     'Al-Ettifaq': {
-        'primary': 'Al-Ettifaq Club Stadium',
+        'primary': 'EGO Stadium',
         'city': 'Dammam',
         'alternatives': []
     },
@@ -1227,7 +1227,7 @@ def correct_team_locations(teams_data):
     """
     team_locations = {
         'Al-Khaleej': {'city': 'Saihat', 'stadium': 'Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
-        'Al-Ettifaq': {'city': 'Dammam', 'stadium': 'Al-Ettifaq Club Stadium', 'stadium_capacity': 15000},
+        'Al-Ettifaq': {'city': 'Dammam', 'stadium': 'EGO Stadium', 'stadium_capacity': 15000},
         'Al-Taawoun': {'city': 'Buraidah', 'stadium': 'Taawoun Club Stadium', 'stadium_capacity': 25000},
         'Al-Fateh': {'city': 'Al-Mubarraz', 'stadium': 'Al-Fateh Club Stadium', 'stadium_capacity': 20000},
         'Al-Hilal': {'city': 'Riyadh', 'stadium': 'Kingdom Arena', 'stadium_capacity': 30000},
@@ -3435,6 +3435,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
