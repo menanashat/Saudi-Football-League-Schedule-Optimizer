@@ -245,7 +245,7 @@ CITY_STADIUMS = {
         'Mohammed Bin Fahd Stadiu',
         'Prince Mohammed bin Fahd Stadium'
     ],
-    'Buraidah': [
+    'Buraydah': [
         'Al Hazem Club Stadium',
         'Taawoun Club Stadium (Buraydah)',
         'King Abdullah Sports City (Buraydah)',
@@ -611,7 +611,7 @@ def get_prayer_times_unified(city, date, prayer='all'):
         st.warning(f"No date provided for prayer times. Using today's date: {date}")
 
     city_mapping = {
-        'Riyadh': 'Riyadh', 'Jeddah': 'Jeddah', 'Dammam': 'Dammam', 'Buraidah': 'Buraidah',
+        'Riyadh': 'Riyadh', 'Jeddah': 'Jeddah', 'Dammam': 'Dammam', 'Buraydah': 'Buraydah',
         'Al-Mubarraz': 'Al Mubarraz', 'Khamis Mushait': 'Khamis Mushait', 'Abha': 'Abha',
         'Al Khobar': 'Al Khobar', 'Saihat': 'Saihat', 'Al Majmaah': 'Al Majmaah',
         'Ar Rass': 'Ar Rass', 'Unaizah': 'Unaizah', 'NEOM': 'Tabuk'
@@ -1228,7 +1228,7 @@ def correct_team_locations(teams_data):
     team_locations = {
         'Al-Khaleej': {'city': 'Saihat', 'stadium': 'Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
         'Al-Ettifaq': {'city': 'Dammam', 'stadium': 'EGO Stadium', 'stadium_capacity': 15000},
-        'Al-Taawoun': {'city': 'Buraidah', 'stadium': 'Taawoun Club Stadium', 'stadium_capacity': 25000},
+        'Al-Taawoun': {'city': 'Buraydah', 'stadium': 'Taawoun Club Stadium', 'stadium_capacity': 25000},
         'Al-Fateh': {'city': 'Al-Mubarraz', 'stadium': 'Al-Fateh Club Stadium', 'stadium_capacity': 20000},
         'Al-Hilal': {'city': 'Riyadh', 'stadium': 'Kingdom Arena', 'stadium_capacity': 30000},
         'Al-Ahli': {'city': 'Jeddah', 'stadium': 'Alinma Stadium', 'stadium_capacity': 30000},
@@ -1337,7 +1337,7 @@ def load_data():
             'Al-Qadisiyah', 'Al-riyadh', 'Al-Najma', 'Al-Kholood', 'Damac', 'NEOM'
         ],
         'home_city': [
-            'Buraidah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
+            'Buraydah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
             'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Najran', 'Ar Rass',
             'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
@@ -1376,7 +1376,7 @@ def load_data():
     teams_data = correct_team_locations(teams_data)
 
     weather_data = pd.DataFrame({
-        'city': ['Riyadh', 'Jeddah', 'Dammam', 'Buraidah', 'Al-Mubarraz', 'Khamis Mushait', 'Abha', 'Al Khobar', 'Saihat', 'Al Majmaah', 'Ar Rass', 'Unaizah', 'NEOM', 'Najran'],
+        'city': ['Riyadh', 'Jeddah', 'Dammam', 'Buraydah', 'Al-Mubarraz', 'Khamis Mushait', 'Abha', 'Al Khobar', 'Saihat', 'Al Majmaah', 'Ar Rass', 'Unaizah', 'NEOM', 'Najran'],
         'month': [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
         'temperature': [35, 32, 33, 34, 33, 28, 27, 33, 34, 34, 34, 34, 30, 28],
         'humidity': [30, 60, 55, 35, 50, 40, 45, 55, 50, 35, 35, 35, 25, 40]
@@ -3446,6 +3446,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
