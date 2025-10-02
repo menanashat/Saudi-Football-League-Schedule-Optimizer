@@ -277,7 +277,7 @@ CITY_STADIUMS = {
         'King Abdullah Sport City'
     ],
     'Najran': [
-        'Prince Hathloul Sports City'
+        'Prince Hathloul Sport City'
     ],
     'Tabuk': [
         'King Khalid Sports City Stadium'
@@ -1352,7 +1352,7 @@ def load_data():
             'Al-Fateh Club Stadium', 
             'Al Majmaah Sports City', 
             'Mohammed Bin Fahd Stadium',
-            'Prince Hathloul Sports City',  # Changed from 'Prince Hathloul bin Abdulaziz Sport Staduim'
+            'Prince Hathloul Sport City',  # Changed from 'Prince Hathloul bin Abdulaziz Sport Staduim'
             'Al Hazem Club Stadium', 
             'Mohammed Bin Fahd Stadiu',
             'Prince Faisal bin Fahd Stadium', 
@@ -3446,6 +3446,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
