@@ -1332,7 +1332,7 @@ def load_data():
         profit_model = None
         models_loaded = False
 
-    # Updated data dictionary with all 18 teams
+    # Updated data dictionary with all 18 teams - corrected to match CITY_STADIUMS
     data = {
         'team': [
             'Al-Taawoun', 'Al-Hilal', 'Al-Nassr', 'Al-Ittihad', 'Al-Ahli', 'Al-Shabab',
@@ -1341,17 +1341,28 @@ def load_data():
         ],
         'home_city': [
             'Buraidah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
-            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Abha', 'Abha',
-            'Al Khobar', 'Riyadh', 'Buraydah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
+            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Saihat', 'Najran', 'Abha',
+            'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
         'home_stadium': [
-            'Taawoun Club Stadium (Buraydah)', 'Kingdom Arena', 'King Saud University Stadium (Al-Oul Park)',
-            'Alinma Stadium', 'Alinma Stadium',
-            'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)', 'Al-Ettifaq Club Stadium',
-            'Al-Fateh Club Stadium', 'Al Majmaah Sports City', 'Mohammed Bin Fahd Stadium',
-            'Prince Hathloul bin Abdulaziz Sport Staduim', 'Al Hazem Club Stadium', 'Mohammed Bin Fahd Stadiu',
-            'Prince Faisal bin Fahd Stadium', 'King Abdullah Sport City', 'Al Hazem Club Stadium',
-            'Damac Club Stadium (Khamis Mushait)', 'NEOM Stadium'
+            'Taawoun Club Stadium (Buraydah)', 
+            'Kingdom Arena', 
+            'King Saud University Stadium (Al-Oul Park)',
+            'Alinma Stadium', 
+            'Alinma Stadium',
+            'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)', 
+            'EGO Stadium',  # Changed from 'Al-Ettifaq Club Stadium'
+            'Al-Fateh Club Stadium', 
+            'Al Majmaah Sports City', 
+            'Mohammed Bin Fahd Stadium',
+            'Prince Hathloul Sports City',  # Changed from 'Prince Hathloul bin Abdulaziz Sport Staduim'
+            'Al Hazem Club Stadium', 
+            'Mohammed Bin Fahd Stadiu',
+            'Prince Faisal bin Fahd Stadium', 
+            'King Abdullah Sport City',  # Al-Najma's stadium
+            'Al Hazem Club Stadium',
+            'Damac Club Stadium (Khamis Mushait)', 
+            'NEOM Stadium'
         ],
         'stadium_capacity': [
             25000, 30000, 25000, 60000, 30000, 20000,
@@ -1368,13 +1379,13 @@ def load_data():
     teams_data = correct_team_locations(teams_data)
 
     weather_data = pd.DataFrame({
-        'city': ['Riyadh', 'Jeddah', 'Dammam', 'Buraidah', 'Al-Mubarraz', 'Khamis Mushait', 'Abha', 'Al Khobar', 'Saihat', 'Al Majmaah', 'Ar Rass', 'Unaizah', 'NEOM'],
-        'month': [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
-        'temperature': [35, 32, 33, 34, 33, 28, 27, 33, 34, 34, 34, 34, 30],
-        'humidity': [30, 60, 55, 35, 50, 40, 45, 55, 50, 35, 35, 35, 25]
+        'city': ['Riyadh', 'Jeddah', 'Dammam', 'Buraidah', 'Al-Mubarraz', 'Khamis Mushait', 'Abha', 'Al Khobar', 'Saihat', 'Al Majmaah', 'Ar Rass', 'Unaizah', 'NEOM', 'Najran'],
+        'month': [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+        'temperature': [35, 32, 33, 34, 33, 28, 27, 33, 34, 34, 34, 34, 30, 28],
+        'humidity': [30, 60, 55, 35, 50, 40, 45, 55, 50, 35, 35, 35, 25, 40]
     })
 
-    return teams_data, weather_data, attendance_model, profit_model, models_loaded
+    return teams_data, weather_data, attendance_model, profit_model, models_loaded  
 
 
 
@@ -3438,7 +3449,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
