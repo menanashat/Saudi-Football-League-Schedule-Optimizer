@@ -571,6 +571,7 @@ def update_scenario_stadium(scenario, new_stadium, new_city):
 
 
 
+
 def get_alternative_stadium(stadium, match_date):
     """
     Get the alternative stadium if the primary stadium is unavailable.
@@ -1832,6 +1833,9 @@ def display_week_scenarios(week_number, matches_from_excel):
                                 unsafe_allow_html=True
                             )
                         
+                        # Create a unique key for storing the selected stadium in session state
+                        stadium_session_key = f"selected_stadium_{scenario.scenario_id}_{week_number}_{match_id}"
+                        
                         selected_stadium_option = st.selectbox(
                             "Select Stadium:",
                             options=stadium_options,
@@ -1843,6 +1847,13 @@ def display_week_scenarios(week_number, matches_from_excel):
                         # Validate and update stadium selection
                         selected_index = stadium_options.index(selected_stadium_option)
                         new_stadium, new_city, is_selectable = stadium_data[selected_index]
+                        
+                        # Store the selected stadium and its selectability in session state
+                        if stadium_session_key not in st.session_state:
+                            st.session_state[stadium_session_key] = {}
+                        st.session_state[stadium_session_key]['stadium'] = new_stadium
+                        st.session_state[stadium_session_key]['city'] = new_city
+                        st.session_state[stadium_session_key]['is_selectable'] = is_selectable
                         
                         # Check if user tried to select a booked stadium
                         if not is_selectable and new_stadium != scenario.stadium:
@@ -3425,6 +3436,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
