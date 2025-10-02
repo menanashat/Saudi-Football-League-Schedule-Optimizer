@@ -290,7 +290,7 @@ STADIUM_UNAVAILABILITY = {
     },
     'Al-Ettifaq Club Stadium': {
         'unavailable': (datetime.date(2025, 11, 24), datetime.date(2025, 12, 28)),
-        'alternative': 'Prince Mohammed bin Fahad (Dammam)'
+        'alternative': 'Prince Mohammed bin Fahd Stadium (Dammam)'
     },
     'Taawoun Club Stadium (Buraydah)': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
@@ -345,7 +345,7 @@ TEAM_STADIUMS = {
     'Al-Ettifaq': {
         'primary': 'EGO Stadium',
         'city': 'Dammam',
-        'alternatives': ['Prince Mohammed bin Fahad (Dammam)']
+        'alternatives': ['Prince Mohammed bin Fahd Stadium(Dammam)']
     },
     'Al-Taawoun': {
         'primary': 'Taawoun Club Stadium (Buraydah)',
@@ -368,7 +368,7 @@ TEAM_STADIUMS = {
         'alternatives': []
     },
     'Al-Khaleej': {
-        'primary': 'Mohammed Bin Fahd Stadium',
+        'primary': 'Prince Mohammed Bin Fahd Stadium',
         'city': 'Dammam',
         'alternatives': []
     },
@@ -1224,7 +1224,7 @@ def correct_team_locations(teams_data):
     Maps missing columns from team_locations and preserves existing columns.
     """
     team_locations = {
-        'Al-Khaleej': {'city': 'Dammam', 'stadium': 'Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
+        'Al-Khaleej': {'city': 'Dammam', 'stadium': 'Prince Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
         'Al-Ettifaq': {'city': 'Dammam', 'stadium': 'EGO Stadium', 'stadium_capacity': 15000},
         'Al-Taawoun': {'city': 'Buraydah', 'stadium': 'Taawoun Club Stadium', 'stadium_capacity': 25000},
         'Al-Fateh': {'city': 'Al-Mubarraz', 'stadium': 'Al-Fateh Club Stadium', 'stadium_capacity': 20000},
@@ -1349,7 +1349,7 @@ def load_data():
             'EGO Stadium',  # Changed from 'Al-Ettifaq Club Stadium'
             'Al-Fateh Club Stadium', 
             'Al Majmaah Sports City', 
-            'Mohammed Bin Fahd Stadium',
+            'Prince Mohammed Bin Fahd Stadium',
             'Prince Hathloul Sport City',  # Changed from 'Prince Hathloul bin Abdulaziz Sport Staduim'
             'Al Hazem Club Stadium', 
             'Mohammed Bin Fahd Stadiu',
@@ -3444,6 +3444,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
