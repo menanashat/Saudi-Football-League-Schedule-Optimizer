@@ -248,7 +248,7 @@ CITY_STADIUMS = {
     'Buraydah': [
         'Al Hazem Club Stadium',
         'Taawoun Club Stadium (Buraydah)',
-        'King Abdullah Sports City (Buraydah)',
+        'King Abdullah Sports City ',
         'Al Majmaah Sports City'
     ],
     'Ar Rass': [
@@ -296,11 +296,11 @@ STADIUM_UNAVAILABILITY = {
     },
     'Taawoun Club Stadium (Buraydah)': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
-        'alternative': 'King Abdullah Sports City (Buraydah)'
+        'alternative': 'King Abdullah Sports City '
     },
     'Al Hazem Club Stadium': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
-        'alternative': 'King Abdullah Sports City (Buraydah)'
+        'alternative': 'King Abdullah Sports City '
     },
     'Damac Club Stadium (Khamis Mushait)': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 5)),
@@ -352,12 +352,12 @@ TEAM_STADIUMS = {
     'Al-Taawoun': {
         'primary': 'Taawoun Club Stadium (Buraydah)',
         'city': 'Buraydah',
-        'alternatives': ['King Abdullah Sports City (Buraydah)']
+        'alternatives': ['King Abdullah Sports City ']
     },
     'Al-Kholood': {
         'primary': 'Al Hazem Club Stadium',
         'city': 'Ar Rass',
-        'alternatives': ['King Abdullah Sports City (Buraydah)']
+        'alternatives': ['King Abdullah Sports City ']
     },
     'Al-Fateh': {
         'primary': 'Al-Fateh Club Stadium',
@@ -377,7 +377,7 @@ TEAM_STADIUMS = {
     'Al-Fayha': {
         'primary': 'Al Majmaah Sports City',
         'city': 'Al Majmaah',
-        'alternatives': ['King Abdullah Sports City (Buraydah)']
+        'alternatives': ['King Abdullah Sports City']
     },
     'Damac': {
         'primary': 'Damac Club Stadium (Khamis Mushait)',
@@ -402,7 +402,7 @@ TEAM_STADIUMS = {
     'Al-Hazem': {
         'primary': 'Al Hazem Club Stadium',
         'city': 'Abha',
-        'alternatives': ['King Abdullah Sports City (Buraydah)']
+        'alternatives': ['King Abdullah Sports City ']
     }
 }
 
@@ -3446,6 +3446,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
