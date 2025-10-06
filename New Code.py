@@ -328,7 +328,7 @@ TEAM_STADIUMS = {
         'alternatives': ['Prince Faisal bin Fahd Stadium']
     },
     'Al-Qadisiyah': {
-        'primary': 'Price Mohammed Bin Fahd Stadium',
+        'primary': 'Prince Mohammed bin Fahd Stadium',
         'city': 'Al Khobar',
         'alternatives': []
     },
