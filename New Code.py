@@ -272,7 +272,6 @@ CITY_STADIUMS = {
        'Prince Sultan bin Abdulaziz Sports City(Abha)'
     ],
     'NEOM': [
-        'NEOM Stadium',
         'King Khalid Sports City Stadium'
     ],
     'Unaizah': [
@@ -393,7 +392,7 @@ TEAM_STADIUMS = {
     },
     'NEOM': {
         'primary': 'King Khalid Sports City Stadium',
-        'city': 'Tabuk',
+        'city': 'NEOM',
         'alternatives': []
     },
     'Al-Najma': {
@@ -1245,7 +1244,7 @@ def correct_team_locations(teams_data):
         'Al-Kholood': {'city': 'Ar Rass', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
         'Al-riyadh': {'city': 'Riyadh', 'stadium': 'Prince Faisal bin Fahd Stadium', 'stadium_capacity': 15000},
         'Al-Najma': {'city': 'Buraydah', 'stadium': 'King Abdullah Sport City', 'stadium_capacity': 20000},
-        'NEOM': {'city': 'Tabuk', 'stadium': 'King Khalid Sports City Stadium', 'stadium_capacity': 20000}
+        'NEOM': {'city': 'NEOM', 'stadium': 'King Khalid Sports City Stadium', 'stadium_capacity': 20000}
     }
 
     # Log input teams_data
@@ -3448,6 +3447,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
