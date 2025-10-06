@@ -399,7 +399,7 @@ TEAM_STADIUMS = {
     },
     'Al-Hazem': {
         'primary': 'Al Hazem Club Stadium',
-        'city': 'Abha',
+        'city': 'Ar Rass',
         'alternatives': ['King Abdullah Sports City ']
     }
 }
@@ -3444,6 +3444,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
