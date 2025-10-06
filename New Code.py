@@ -392,8 +392,8 @@ TEAM_STADIUMS = {
         'alternatives': []
     },
     'NEOM': {
-        'primary': 'NEOM Stadium',
-        'city': 'NEOM',
+        'primary': 'King Khalid Sports City Stadium',
+        'city': 'Tabuk',
         'alternatives': []
     },
     'Al-Najma': {
@@ -3448,6 +3448,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
