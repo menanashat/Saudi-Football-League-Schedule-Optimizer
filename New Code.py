@@ -234,7 +234,7 @@ CITY_STADIUMS = {
     'Riyadh': [
         'Kingdom Arena',
         'King Saud University Stadium (Al-Oul Park)',
-        'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)',
+        'Shabab Club Stadium',
         'Prince Faisal bin Fahd Stadium'
     ],
     'Dammam': [
@@ -338,7 +338,7 @@ TEAM_STADIUMS = {
         'alternatives': ['Prince Abdullah Al-Faisal Stadium']
     },
     'Al-Shabab': {
-        'primary': 'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)',
+        'primary': 'Shabab Club Stadium',
         'city': 'Riyadh',
         'alternatives': ['Prince Faisal bin Fahd Stadium']
     },
@@ -1235,7 +1235,7 @@ def correct_team_locations(teams_data):
         'Al-Okhdood': {'city': 'Abha', 'stadium': 'Prince Hathloul bin Abdulaziz Sport Staduim', 'stadium_capacity': 20000},
         'Al-Hazem': {'city': 'Abha', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
         'Al-Qadisiyah': {'city': 'Al Khobar', 'stadium': 'Mohammed Bin Fahd Stadiu', 'stadium_capacity': 20000},
-        'Al-Shabab': {'city': 'Riyadh', 'stadium': 'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)', 'stadium_capacity': 20000},
+        'Al-Shabab': {'city': 'Riyadh', 'stadium': 'Shabab Club Stadium', 'stadium_capacity': 20000},
         'Al-Nassr': {'city': 'Riyadh', 'stadium': 'King Saud University Stadium (Al-Oul Park)', 'stadium_capacity': 25000},
         'Al-Fayha': {'city': 'Al Majmaah', 'stadium': 'Al Majmaah Sports City', 'stadium_capacity': 20000},
         'Al-Kholood': {'city': 'Ar Rass', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
@@ -1345,7 +1345,7 @@ def load_data():
             'King Saud University Stadium (Al-Oul Park)',
             'Alinma Stadium', 
             'Alinma Stadium',
-            'Prince Khalid bin Sultan bin Abdul Aziz Stadium (Shabab Club Stadium)', 
+            'Shabab Club Stadium', 
             'EGO Stadium',  # Changed from 'Al-Ettifaq Club Stadium'
             'Al-Fateh Club Stadium', 
             'Al Majmaah Sports City', 
@@ -3444,6 +3444,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
