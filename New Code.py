@@ -328,7 +328,7 @@ TEAM_STADIUMS = {
         'alternatives': ['Prince Faisal bin Fahd Stadium']
     },
     'Al-Qadisiyah': {
-        'primary': 'Prince Mohammed bin Fahd Stadium',
+        'primary': 'Prince Mohammed Bin Fahd Stadium',
         'city': 'Dammam',
         'alternatives': []
     },
@@ -3444,6 +3444,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
