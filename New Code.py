@@ -1397,9 +1397,11 @@ def load_match_schedule_from_files():
     Ensures all team names are mapped to standard names using CLEAN_TEAM_NAMES.
     """
     # Define team name mappings with normalized keys
+# Define team name mappings with normalized keys
     CLEAN_TEAM_NAMES = {
         'AL ITTIHAD': 'Al-Ittihad',
         'AL ETTIFAQ': 'Al-Ettifaq',
+        'AL TAAWOUN': 'Al-Taawoun',
         'Al Taawoun': 'Al-Taawoun',
         'AL HILAL': 'Al-Hilal',
         'AL NASSR': 'Al-Nassr',
@@ -1409,6 +1411,7 @@ def load_match_schedule_from_files():
         'AL FAYHA': 'Al-Fayha',
         'AL KHALEEJ': 'Al-Khaleej',
         'AL OKHDOOD': 'Al-Okhdood',
+        'AL HAZEM': 'Al-Hazem',
         'Al Hazem': 'Al-Hazem',
         'AL QADISIYAH': 'Al-Qadisiyah',
         'AL QADSIAH': 'Al-Qadisiyah',
@@ -1424,6 +1427,10 @@ def load_match_schedule_from_files():
         'AL_ETTIFAQ': 'Al-Ettifaq',
         'AL-ETTIFAQ': 'Al-Ettifaq',
         'AL ETTIFAQ ': 'Al-Ettifaq',
+        'AL-TAAWOUN': 'Al-Taawoun',
+        'AL TAAWOUN ': 'Al-Taawoun',
+        'AL-HAZEM': 'Al-Hazem',
+        'AL HAZEM ': 'Al-Hazem',
         'AL NAJMA': 'Al-Najma',
         'AL-NAJMAH': 'Al-Najma',
         'AL NAJMAH ': 'Al-Najma',
@@ -1433,7 +1440,6 @@ def load_match_schedule_from_files():
         'AL-QADSIAH': 'Al-Qadisiyah',
         'AL QADSIAH ': 'Al-Qadisiyah'
     }
-
     def normalize_team_name(name):
         """Normalize team name by removing non-printable characters, non-breaking spaces, and converting to uppercase."""
         if not isinstance(name, str) or pd.isna(name):
