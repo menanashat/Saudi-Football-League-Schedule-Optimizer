@@ -353,7 +353,7 @@ TEAM_STADIUMS = {
     'Al-Taawoun': {
         'primary': 'Al-Taawoun Club Stadium (Buraydah)',
         'city': 'Buraydah',
-        'alternatives': ['King Abdullah Sports City']
+        'alternatives': []
     },
     'Al-Kholood': {
         'primary': 'Al-Hazem Club Stadium',
@@ -3453,6 +3453,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
