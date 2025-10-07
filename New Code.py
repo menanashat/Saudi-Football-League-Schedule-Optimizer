@@ -1400,7 +1400,7 @@ def load_match_schedule_from_files():
     CLEAN_TEAM_NAMES = {
         'AL ITTIHAD': 'Al-Ittihad',
         'AL ETTIFAQ': 'Al-Ettifaq',
-        'Al-Taawoun': 'Al-Taawoun',
+        'Al Taawoun': 'Al-Taawoun',
         'AL HILAL': 'Al-Hilal',
         'AL NASSR': 'Al-Nassr',
         'AL AHLI': 'Al-Ahli',
@@ -1409,7 +1409,7 @@ def load_match_schedule_from_files():
         'AL FAYHA': 'Al-Fayha',
         'AL KHALEEJ': 'Al-Khaleej',
         'AL OKHDOOD': 'Al-Okhdood',
-        'Al-Hazem': 'Al-Hazem',
+        'Al Hazem': 'Al-Hazem',
         'AL QADISIYAH': 'Al-Qadisiyah',
         'AL QADSIAH': 'Al-Qadisiyah',
         'AL RIYADH': 'Al-riyadh',
@@ -3447,6 +3447,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
