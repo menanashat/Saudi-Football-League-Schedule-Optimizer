@@ -249,19 +249,19 @@ CITY_STADIUMS = {
         'Al-Hazem Club Stadium',
         'Al-Taawoun Club Stadium (Buraydah)',
         'King Abdullah Sport City',
-        'Al Majmaah Sports City'
+        'Al-Majmaah Sports City'
     ],
     'Ar Rass': [
         'Al-Taawoun Club Stadium',
-        'Al Majmaah Sports City'
+        'Al-Majmaah Sports City'
     ],
     'Al-Ahsa': [
         'Al-Fateh Club Stadium',
         'Prince Mohammed bin Fahd Stadium',
         'EGO Stadium',
     ],
-    'Al Majmaah': [
-        'Al Majmaah Sports City',
+    'Al-Majmaah': [
+        'Al-Majmaah Sports City',
         'Al-Taawoun Club Stadium',
         'Al-Hazem Club Stadium'
     ],
@@ -376,8 +376,8 @@ TEAM_STADIUMS = {
         'alternatives': []
     },
     'Al-Fayha': {
-        'primary': 'Al Majmaah Sports City',
-        'city': 'Al Majmaah',
+        'primary': 'Al-Majmaah Sports City',
+        'city': 'Al-Majmaah',
         'alternatives': ['King Abdullah Sports City']
     },
     'Damac': {
@@ -614,7 +614,7 @@ def get_prayer_times_unified(city, date, prayer='all'):
     city_mapping = {
         'Riyadh': 'Riyadh', 'Jeddah': 'Jeddah', 'Dammam': 'Dammam', 'Buraydah': 'Buraydah',
         'Al-Mubarraz': 'Al Mubarraz', 'Khamis Mushait': 'Khamis Mushait', 'Abha': 'Abha',
-        'Al Khobar': 'Al Khobar', 'Saihat': 'Saihat', 'Al Majmaah': 'Al Majmaah',
+        'Al Khobar': 'Al Khobar', 'Saihat': 'Saihat', 'Al-Majmaah': 'Al-Majmaah',
         'Ar Rass': 'Ar Rass', 'Unaizah': 'Unaizah', 'NEOM': 'Tabuk'
     }
 
@@ -1240,7 +1240,7 @@ def correct_team_locations(teams_data):
         'Al-Qadisiyah': {'city': 'Al Khobar', 'stadium': 'Mohammed Bin Fahd Stadiu', 'stadium_capacity': 20000},
         'Al-Shabab': {'city': 'Riyadh', 'stadium': 'Al-Shabab Club Stadium', 'stadium_capacity': 20000},
         'Al-Nassr': {'city': 'Riyadh', 'stadium': 'King Saud University Stadium (Al-Oul Park)', 'stadium_capacity': 25000},
-        'Al-Fayha': {'city': 'Al Majmaah', 'stadium': 'Al Majmaah Sports City', 'stadium_capacity': 20000},
+        'Al-Fayha': {'city': 'Al-Majmaah', 'stadium': 'Al-Majmaah Sports City', 'stadium_capacity': 20000},
         'Al-Kholood': {'city': 'Ar Rass', 'stadium': 'Al-Hazem Club Stadium', 'stadium_capacity': 20000},
         'Al-riyadh': {'city': 'Riyadh', 'stadium': 'Prince Faisal bin Fahd Stadium', 'stadium_capacity': 15000},
         'Al-Najma': {'city': 'Buraydah', 'stadium': 'King Abdullah Sport City', 'stadium_capacity': 20000},
@@ -1339,7 +1339,7 @@ def load_data():
         ],
         'home_city': [
             'Buraydah', 'Riyadh', 'Riyadh', 'Jeddah', 'Jeddah', 'Riyadh',
-            'Dammam', 'Al-Mubarraz', 'Al Majmaah', 'Dammam', 'Najran', 'Ar Rass',
+            'Dammam', 'Al-Mubarraz', 'Al-Majmaah', 'Dammam', 'Najran', 'Ar Rass',
             'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
         'home_stadium': [
@@ -1351,7 +1351,7 @@ def load_data():
             'Al-Shabab Club Stadium', 
             'EGO Stadium',  # Changed from 'Al-Ettifaq Club Stadium'
             'Al-Fateh Club Stadium', 
-            'Al Majmaah Sports City', 
+            'Al-Majmaah Sports City', 
             'Prince Mohammed Bin Fahd Stadium',
             'Prince Hathloul Sport City',  # Changed from 'Prince Hathloul bin Abdulaziz Sport Staduim'
             'Al-Hazem Club Stadium', 
@@ -1377,7 +1377,7 @@ def load_data():
     teams_data = correct_team_locations(teams_data)
 
     weather_data = pd.DataFrame({
-        'city': ['Riyadh', 'Jeddah', 'Dammam', 'Buraydah', 'Al-Mubarraz', 'Khamis Mushait', 'Abha', 'Al Khobar', 'Saihat', 'Al Majmaah', 'Ar Rass', 'Unaizah', 'NEOM', 'Najran'],
+        'city': ['Riyadh', 'Jeddah', 'Dammam', 'Buraydah', 'Al-Mubarraz', 'Khamis Mushait', 'Abha', 'Al Khobar', 'Saihat', 'Al-Majmaah', 'Ar Rass', 'Unaizah', 'NEOM', 'Najran'],
         'month': [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
         'temperature': [35, 32, 33, 34, 33, 28, 27, 33, 34, 34, 34, 34, 30, 28],
         'humidity': [30, 60, 55, 35, 50, 40, 45, 55, 50, 35, 35, 35, 25, 40]
@@ -3453,6 +3453,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
