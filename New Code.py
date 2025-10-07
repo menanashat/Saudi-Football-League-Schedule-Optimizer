@@ -1360,7 +1360,7 @@ def load_data():
             'King Abdullah Sport City',  # Al-Najma's stadium
             'Al Hazem Club Stadium',
             'Damac Club Stadium (Khamis Mushait)', 
-            'NEOM Stadium'
+            'King Khalid Sports City Stadium'
         ],
         'stadium_capacity': [
             25000, 30000, 25000, 60000, 30000, 20000,
@@ -3447,6 +3447,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
