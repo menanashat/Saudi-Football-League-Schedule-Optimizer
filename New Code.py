@@ -297,7 +297,7 @@ STADIUM_UNAVAILABILITY = {
     },
     'Al-Taawoun Club Stadium (Buraydah)': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
-        'alternative': 'King Abdullah Sports City '
+        'alternative': 'King Abdullah Sport City'
     },
     'Al-Hazem Club Stadium': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
@@ -3453,6 +3453,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
