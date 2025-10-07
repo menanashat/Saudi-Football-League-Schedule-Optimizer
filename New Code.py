@@ -246,13 +246,13 @@ CITY_STADIUMS = {
         'Prince Mohammed bin Fahd Stadium'
     ],
     'Buraydah': [
-        'Al Hazem Club Stadium',
-        'Taawoun Club Stadium (Buraydah)',
+        'Al-Hazem Club Stadium',
+        'Al-Taawoun Club Stadium (Buraydah)',
         'King Abdullah Sport City',
         'Al Majmaah Sports City'
     ],
     'Ar Rass': [
-        'Taawoun Club Stadium',
+        'Al-Taawoun Club Stadium',
         'Al Majmaah Sports City'
     ],
     'Al-Ahsa': [
@@ -262,8 +262,8 @@ CITY_STADIUMS = {
     ],
     'Al Majmaah': [
         'Al Majmaah Sports City',
-        'Taawoun Club Stadium',
-        'Al Hazem Club Stadium'
+        'Al-Taawoun Club Stadium',
+        'Al-Hazem Club Stadium'
     ],
     'Khamis Mushait': [
         'Damac Club Stadium (Khamis Mushait)'
@@ -295,11 +295,11 @@ STADIUM_UNAVAILABILITY = {
         'unavailable': (datetime.date(2025, 11, 24), datetime.date(2025, 12, 28)),
         'alternative': 'Prince Mohammed bin Fahd Stadium (Dammam)'
     },
-    'Taawoun Club Stadium (Buraydah)': {
+    'Al-Taawoun Club Stadium (Buraydah)': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
         'alternative': 'King Abdullah Sports City '
     },
-    'Al Hazem Club Stadium': {
+    'Al-Hazem Club Stadium': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
         'alternative': 'King Abdullah Sports City '
     },
@@ -351,12 +351,12 @@ TEAM_STADIUMS = {
         'alternatives': []
     },
     'Al-Taawoun': {
-        'primary': 'Taawoun Club Stadium (Buraydah)',
+        'primary': 'Al-Taawoun Club Stadium (Buraydah)',
         'city': 'Buraydah',
         'alternatives': ['King Abdullah Sports City ']
     },
     'Al-Kholood': {
-        'primary': 'Al Hazem Club Stadium',
+        'primary': 'Al-Hazem Club Stadium',
         'city': 'Ar Rass',
         'alternatives': ['King Abdullah Sports City ']
     },
@@ -401,7 +401,7 @@ TEAM_STADIUMS = {
         'alternatives': []
     },
     'Al-Hazem': {
-        'primary': 'Al Hazem Club Stadium',
+        'primary': 'Al-Hazem Club Stadium',
         'city': 'Ar Rass',
         'alternatives': ['King Abdullah Sports City ']
     }
@@ -1229,19 +1229,19 @@ def correct_team_locations(teams_data):
     team_locations = {
         'Al-Khaleej': {'city': 'Dammam', 'stadium': 'Prince Mohammed Bin Fahd Stadium', 'stadium_capacity': 20000},
         'Al-Ettifaq': {'city': 'Dammam', 'stadium': 'EGO Stadium', 'stadium_capacity': 15000},
-        'Al-Taawoun': {'city': 'Buraydah', 'stadium': 'Taawoun Club Stadium', 'stadium_capacity': 25000},
+        'Al-Taawoun': {'city': 'Buraydah', 'stadium': 'Al-Taawoun Club Stadium', 'stadium_capacity': 25000},
         'Al-Fateh': {'city': 'Al-Mubarraz', 'stadium': 'Al-Fateh Club Stadium', 'stadium_capacity': 20000},
         'Al-Hilal': {'city': 'Riyadh', 'stadium': 'Kingdom Arena', 'stadium_capacity': 30000},
         'Al-Ahli': {'city': 'Jeddah', 'stadium': 'Alinma Stadium', 'stadium_capacity': 30000},
         'Al-Ittihad': {'city': 'Jeddah', 'stadium': 'Alinma Stadium', 'stadium_capacity': 60000},
         'Damac': {'city': 'Khamis Mushait', 'stadium': 'Damac Club Stadium (Khamis Mushait)', 'stadium_capacity': 20000},
         'Al-Okhdood': {'city': 'Abha', 'stadium': 'Prince Hathloul bin Abdulaziz Sport Staduim', 'stadium_capacity': 20000},
-        'Al-Hazem': {'city': 'Abha', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
+        'Al-Hazem': {'city': 'Abha', 'stadium': 'Al-Hazem Club Stadium', 'stadium_capacity': 20000},
         'Al-Qadisiyah': {'city': 'Al Khobar', 'stadium': 'Mohammed Bin Fahd Stadiu', 'stadium_capacity': 20000},
         'Al-Shabab': {'city': 'Riyadh', 'stadium': 'Al-Shabab Club Stadium', 'stadium_capacity': 20000},
         'Al-Nassr': {'city': 'Riyadh', 'stadium': 'King Saud University Stadium (Al-Oul Park)', 'stadium_capacity': 25000},
         'Al-Fayha': {'city': 'Al Majmaah', 'stadium': 'Al Majmaah Sports City', 'stadium_capacity': 20000},
-        'Al-Kholood': {'city': 'Ar Rass', 'stadium': 'Al Hazem Club Stadium', 'stadium_capacity': 20000},
+        'Al-Kholood': {'city': 'Ar Rass', 'stadium': 'Al-Hazem Club Stadium', 'stadium_capacity': 20000},
         'Al-riyadh': {'city': 'Riyadh', 'stadium': 'Prince Faisal bin Fahd Stadium', 'stadium_capacity': 15000},
         'Al-Najma': {'city': 'Buraydah', 'stadium': 'King Abdullah Sport City', 'stadium_capacity': 20000},
         'NEOM': {'city': 'NEOM', 'stadium': 'King Khalid Sports City Stadium', 'stadium_capacity': 20000}
@@ -1343,7 +1343,7 @@ def load_data():
             'Al Khobar', 'Riyadh', 'Unaizah', 'Ar Rass', 'Khamis Mushait', 'NEOM'
         ],
         'home_stadium': [
-            'Taawoun Club Stadium (Buraydah)', 
+            'Al-Taawoun Club Stadium (Buraydah)', 
             'Kingdom Arena', 
             'King Saud University Stadium (Al-Oul Park)',
             'Alinma Stadium', 
@@ -1354,11 +1354,11 @@ def load_data():
             'Al Majmaah Sports City', 
             'Prince Mohammed Bin Fahd Stadium',
             'Prince Hathloul Sport City',  # Changed from 'Prince Hathloul bin Abdulaziz Sport Staduim'
-            'Al Hazem Club Stadium', 
+            'Al-Hazem Club Stadium', 
             'Mohammed Bin Fahd Stadiu',
             'Prince Faisal bin Fahd Stadium', 
             'King Abdullah Sport City',  # Al-Najma's stadium
-            'Al Hazem Club Stadium',
+            'Al-Hazem Club Stadium',
             'Damac Club Stadium (Khamis Mushait)', 
             'King Khalid Sports City Stadium'
         ],
@@ -1400,7 +1400,7 @@ def load_match_schedule_from_files():
     CLEAN_TEAM_NAMES = {
         'AL ITTIHAD': 'Al-Ittihad',
         'AL ETTIFAQ': 'Al-Ettifaq',
-        'AL TAAWOUN': 'Al-Taawoun',
+        'Al-Taawoun': 'Al-Taawoun',
         'AL HILAL': 'Al-Hilal',
         'AL NASSR': 'Al-Nassr',
         'AL AHLI': 'Al-Ahli',
@@ -1409,7 +1409,7 @@ def load_match_schedule_from_files():
         'AL FAYHA': 'Al-Fayha',
         'AL KHALEEJ': 'Al-Khaleej',
         'AL OKHDOOD': 'Al-Okhdood',
-        'AL HAZEM': 'Al-Hazem',
+        'Al-Hazem': 'Al-Hazem',
         'AL QADISIYAH': 'Al-Qadisiyah',
         'AL QADSIAH': 'Al-Qadisiyah',
         'AL RIYADH': 'Al-riyadh',
@@ -3447,6 +3447,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
