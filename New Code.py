@@ -300,7 +300,7 @@ STADIUM_UNAVAILABILITY = {
     },
     'Al-Hazem Club Stadium': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 8)),
-        'alternative': 'King Abdullah Sports City '
+        'alternative': 'King Abdullah Sports City'
     },
     'Damac Club Stadium (Khamis Mushait)': {
         'unavailable': (datetime.date(2025, 10, 5), datetime.date(2025, 11, 5)),
@@ -352,12 +352,12 @@ TEAM_STADIUMS = {
     'Al-Taawoun': {
         'primary': 'Al-Taawoun Club Stadium (Buraydah)',
         'city': 'Buraydah',
-        'alternatives': []
+        'alternatives': ['King Abdullah Sports City']
     },
     'Al-Kholood': {
         'primary': 'Al-Hazem Club Stadium',
         'city': 'Ar Rass',
-        'alternatives': ['King Abdullah Sports City ']
+        'alternatives': ['King Abdullah Sports City']
     },
     'Al-Fateh': {
         'primary': 'Al-Fateh Club Stadium',
@@ -3452,6 +3452,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
