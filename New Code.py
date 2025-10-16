@@ -1728,6 +1728,7 @@ def get_scenario_time_context(scenario, available_scenarios):
             return "⏰ Fixed Time"  # Default for any other scenarios
     except (ValueError, AttributeError):
         return "⏰ Fixed Time"  # Fallback if scenario not found
+        
 def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week with stadium dropdown selection.
@@ -1947,25 +1948,25 @@ def display_week_scenarios(week_number, matches_from_excel):
                             last_match_html += f"<div><b>{away}</b>: No previous match</div>"
                         
                         last_match_html += "</div>"
-                # Build the availability section HTML
+                
+                # Build the availability section HTML with proper quote handling
                 availability_section = ""
                 if availability_text:
-                    availability_section = f"<div style='color: #d32f2f; font-weight: bold; margin-top: 8px;'>{availability_text}</div>"
+                    availability_section = f'<div style="color: #d32f2f; font-weight: bold; margin-top: 8px;">{availability_text}</div>'
         
                 
-                # Display scenario card
-                st.markdown(
-                    f"""
-                    <div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">
-                        <div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>
-                        <div>🏟️ {scenario.stadium} ({scenario.city})</div>
-                        <div style='margin-top: 5px;'>{time_context}</div>
-                        <div>👥 Attendance: {scenario.attendance_percentage}%</div>
-                        {last_match_html}
-                        {availability_section}
-                    </div>
-                    """, unsafe_allow_html=True
-                )
+                # Display scenario card with proper HTML rendering
+                card_html = f"""
+                <div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">
+                    <div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>
+                    <div>🏟️ {scenario.stadium} ({scenario.city})</div>
+                    <div style='margin-top: 5px;'>{time_context}</div>
+                    <div>👥 Attendance: {scenario.attendance_percentage}%</div>
+                    {last_match_html}
+                    {availability_section}
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
                 
                 # Display unavailable stadiums with reasons
                 if unavailable_stadiums:
@@ -2097,7 +2098,6 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-
 def get_teams_for_match(match_id):
     """
     Helper function to get team names for a given match_id.
@@ -3615,6 +3615,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
