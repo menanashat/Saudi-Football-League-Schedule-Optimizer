@@ -1621,7 +1621,6 @@ def validate_and_redistribute_matches(matches_from_excel, week_start_dates, matc
         st.write(f"Redistributed week {week}: {[(h, a, d.strftime('%Y-%m-%d')) for h, a, d in redistributed[week]]}")
     return redistributed
 
-# Modified display_week_scenarios function with stadium dropdown
 def get_last_match_info(team, current_week, current_date):
     """
     Get the last match played by a team before the current date.
@@ -1882,35 +1881,28 @@ def display_week_scenarios(week_number, matches_from_excel):
                 time_context = get_scenario_time_context(scenario)
                 
                 # Get last match info for both teams (only show if week > 1)
-                last_match_html = ""
+                last_match_display = ""
                 if week_number > 1:
                     home_last = get_last_match_info(home, week_number, scenario.date)
                     away_last = get_last_match_info(away, week_number, scenario.date)
                     
-                    last_match_parts = []
-                    if home_last:
-                        location = "Home" if home_last['was_home'] else "Away"
-                        last_match_parts.append(
-                            f"<b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']}"
-                        )
-                    else:
-                        last_match_parts.append(f"<b>{home}</b>: No previous match")
-                    
-                    if away_last:
-                        location = "Home" if away_last['was_home'] else "Away"
-                        last_match_parts.append(
-                            f"<b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']}"
-                        )
-                    else:
-                        last_match_parts.append(f"<b>{away}</b>: No previous match")
-                    
-                    last_match_html = f"""
-                        <div style='margin-top: 5px; padding: 6px; background-color: rgba(255,255,255,0.5); border-radius: 5px; font-size: 0.85em;'>
-                            <div style='font-weight: bold; margin-bottom: 3px;'>📋 Last Match:</div>
-                            {last_match_parts[0]}<br>
-                            {last_match_parts[1]}
-                        </div>
-                    """
+                    if home_last or away_last:
+                        last_match_display = "<div style='margin-top: 8px; padding: 6px; background-color: rgba(255,255,255,0.6); border-radius: 5px; font-size: 0.85em;'>"
+                        last_match_display += "<div style='font-weight: bold; margin-bottom: 3px;'>📋 Last Match:</div>"
+                        
+                        if home_last:
+                            location = "Home" if home_last['was_home'] else "Away"
+                            last_match_display += f"<div><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']}</div>"
+                        else:
+                            last_match_display += f"<div><b>{home}</b>: No previous match</div>"
+                        
+                        if away_last:
+                            location = "Home" if away_last['was_home'] else "Away"
+                            last_match_display += f"<div><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']}</div>"
+                        else:
+                            last_match_display += f"<div><b>{away}</b>: No previous match</div>"
+                        
+                        last_match_display += "</div>"
                 
                 # Display scenario card
                 st.markdown(
@@ -2056,7 +2048,6 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-
 
 def get_teams_for_match(match_id):
     """
@@ -3575,6 +3566,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
