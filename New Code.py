@@ -1705,16 +1705,35 @@ def get_last_match_info(team, current_week, current_date):
         'was_home': last_match['home_team'] == team
     }
 
-def get_scenario_time_context(scenario):
+def get_scenario_time_context(scenario, scenario_index=None):
     """
     Get the context/reason why a scenario time was selected.
     Returns a string describing the time calculation method.
+    
+    Args:
+        scenario: The scenario object containing time information
+        scenario_index: The position/index of the scenario (0-based). 
+                       If provided, will return prayer time labels for first two scenarios.
+    
+    Returns:
+        str: Description of the time context
     """
+    # If scenario_index is provided, use position-based labels
+    if scenario_index is not None:
+        if scenario_index == 0:
+            return "⏰ Maghreb prayer time"
+        elif scenario_index == 1:
+            return "⏰ Isha prayer time"
+        else:
+            # For 3rd scenario onwards, show the fixed time
+            return f"⏰ {scenario.time}"
+    
+    # Legacy logic for when scenario_index is not provided
     time_int = int(scenario.time.split(':')[0])
     
     # Scenarios at 20:00 and 21:00 are fixed times
     if time_int in [20, 21]:
-        return "⏰ Fixed Time Slot"
+        return f"⏰ {scenario.time}"
     # Earlier times are calculated based on prayer times
     elif time_int < 20:
         return "🕌 Calculated from Isha Prayer Time"
@@ -3600,6 +3619,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
