@@ -1728,7 +1728,6 @@ def get_scenario_time_context(scenario, available_scenarios):
             return "⏰ Fixed Time"  # Default for any other scenarios
     except (ValueError, AttributeError):
         return "⏰ Fixed Time"  # Fallback if scenario not found
-
 def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week with stadium dropdown selection.
@@ -1792,28 +1791,28 @@ def display_week_scenarios(week_number, matches_from_excel):
                 time_context = get_scenario_time_context(selected_scenario, scenarios)
                 
                 # Get last match info for both teams (only show if week > 1)
-                last_match_display = ""
+                last_match_html = ""
                 if week_number > 1:
                     home_last = get_last_match_info(home, week_number, selected_scenario.date)
                     away_last = get_last_match_info(away, week_number, selected_scenario.date)
                     
                     if home_last or away_last:
-                        last_match_display = "<div style='margin-top: 8px; padding: 8px; background-color: #f0f8ff; border-radius: 5px;'>"
-                        last_match_display += "<div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match Played:</div>"
+                        last_match_html = "<div style='margin-top: 8px; padding: 8px; background-color: #f0f8ff; border-radius: 5px;'>"
+                        last_match_html += "<div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match Played:</div>"
                         
                         if home_last:
                             location = "Home" if home_last['was_home'] else "Away"
-                            last_match_display += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']} at {home_last['stadium']}</div>"
+                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']} at {home_last['stadium']}</div>"
                         else:
-                            last_match_display += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: No previous match</div>"
+                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: No previous match</div>"
                         
                         if away_last:
                             location = "Home" if away_last['was_home'] else "Away"
-                            last_match_display += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']} at {away_last['stadium']}</div>"
+                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']} at {away_last['stadium']}</div>"
                         else:
-                            last_match_display += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: No previous match</div>"
+                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: No previous match</div>"
                         
-                        last_match_display += "</div>"
+                        last_match_html += "</div>"
                 
                 st.markdown(f"""
                 <div style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 10px 0;">
@@ -1823,8 +1822,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                         🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
                         {time_context}<br>
                         👥 Attendance: {selected_scenario.attendance_percentage}%
-                        {last_match_display}
                     </div>
+                    {last_match_html}
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -1916,37 +1915,37 @@ def display_week_scenarios(week_number, matches_from_excel):
                     card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
                     border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
                 
-                availability_message = ""
+                # Build availability message
+                availability_html = ""
                 if not scenario.is_available:
-                    availability_message = f"⚠️ <span style='color: #d32f2f; font-weight: bold;'>Unavailable: {scenario.conflict_reason}</span>"
-
+                    availability_html = f"<div style='color: #d32f2f; font-weight: bold; margin-top: 8px;'>⚠️ Unavailable: {scenario.conflict_reason}</div>"
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(scenario, available_scenarios)
                 
                 # Get last match info for both teams (only show if week > 1)
-                last_match_display = ""
+                last_match_html = ""
                 if week_number > 1:
                     home_last = get_last_match_info(home, week_number, scenario.date)
                     away_last = get_last_match_info(away, week_number, scenario.date)
                     
                     if home_last or away_last:
-                        last_match_display = "<div style='margin-top: 8px; padding: 6px; background-color: rgba(255,255,255,0.6); border-radius: 5px; font-size: 0.85em;'>"
-                        last_match_display += "<div style='font-weight: bold; margin-bottom: 3px;'>📋 Last Match:</div>"
+                        last_match_html = "<div style='margin-top: 8px; padding: 6px; background-color: rgba(255,255,255,0.6); border-radius: 5px; font-size: 0.85em;'>"
+                        last_match_html += "<div style='font-weight: bold; margin-bottom: 3px;'>📋 Last Match:</div>"
                         
                         if home_last:
                             location = "Home" if home_last['was_home'] else "Away"
-                            last_match_display += f"<div><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']}</div>"
+                            last_match_html += f"<div><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']}</div>"
                         else:
-                            last_match_display += f"<div><b>{home}</b>: No previous match</div>"
+                            last_match_html += f"<div><b>{home}</b>: No previous match</div>"
                         
                         if away_last:
                             location = "Home" if away_last['was_home'] else "Away"
-                            last_match_display += f"<div><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']}</div>"
+                            last_match_html += f"<div><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']}</div>"
                         else:
-                            last_match_display += f"<div><b>{away}</b>: No previous match</div>"
+                            last_match_html += f"<div><b>{away}</b>: No previous match</div>"
                         
-                        last_match_display += "</div>"
+                        last_match_html += "</div>"
                 
                 # Display scenario card
                 st.markdown(
@@ -1956,8 +1955,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                         <div>🏟️ {scenario.stadium} ({scenario.city})</div>
                         <div style='margin-top: 5px;'>{time_context}</div>
                         <div>👥 Attendance: {scenario.attendance_percentage}%</div>
-                        {last_match_display}
-                        <div style='margin-top: 8px;'>{availability_message}</div>
+                        {last_match_html}
+                        {availability_html}
                     </div>
                     """, unsafe_allow_html=True
                 )
@@ -3610,6 +3609,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
