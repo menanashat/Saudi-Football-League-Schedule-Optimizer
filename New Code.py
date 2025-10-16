@@ -1705,41 +1705,22 @@ def get_last_match_info(team, current_week, current_date):
         'was_home': last_match['home_team'] == team
     }
 
-def get_scenario_time_context(scenario, scenario_index=None):
+def get_scenario_time_context(scenario_index):
     """
     Get the context/reason why a scenario time was selected.
-    Returns a string describing the time calculation method.
+    Returns a string describing the time calculation method based on scenario position.
     
     Args:
-        scenario: The scenario object containing time information
-        scenario_index: The position/index of the scenario (0-based). 
-                       If provided, will return prayer time labels for first two scenarios.
-    
-    Returns:
-        str: Description of the time context
+        scenario_index: The index of the scenario (0-3)
     """
-    # If scenario_index is provided, use position-based labels
-    if scenario_index is not None:
-        if scenario_index == 0:
-            return "⏰ Maghreb prayer time"
-        elif scenario_index == 1:
-            return "⏰ Isha prayer time"
-        else:
-            # For 3rd and 4th scenarios onwards, show Fixed Time
-            return "⏰ Fixed Time"
-    
-    # Legacy logic for when scenario_index is not provided
-    time_int = int(scenario.time.split(':')[0])
-    
-    # Scenarios at 20:00 and 21:00 are fixed times
-    if time_int in [20, 21]:
-        return "⏰ Fixed Time"
-    # Earlier times are calculated based on prayer times
-    elif time_int < 20:
-        return "🕌 Calculated from Isha Prayer Time"
-    # Later times after 21:00
-    else:
+    if scenario_index == 0:
         return "🌙 Calculated from Maghrib Prayer Time"
+    elif scenario_index == 1:
+        return "🕌 Calculated from Isha Prayer Time"
+    elif scenario_index in [2, 3]:
+        return "⏰ Fixed Time"
+    else:
+        return "⏰ Fixed Time"  # Default for any other scenarios
 
 def display_week_scenarios(week_number, matches_from_excel):
     """
@@ -3619,6 +3600,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
