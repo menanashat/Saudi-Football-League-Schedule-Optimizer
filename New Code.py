@@ -179,30 +179,92 @@ def is_team_available(team, match_date):
                If not available: (False, "will play at {date}")
     """
     TEAM_UNAVAILABILITY = {
-        'Al-Ittihad': [
-            datetime.date(2025, 9, 15), datetime.date(2025, 9, 30), datetime.date(2025, 10, 20),
-            datetime.date(2025, 11, 4), datetime.date(2025, 11, 24), datetime.date(2025, 12, 23),
-            datetime.date(2026, 2, 10), datetime.date(2026, 2, 17)
-        ],
-        'Al-Ahli': [
-            datetime.date(2025, 9, 15), datetime.date(2025, 9, 29), datetime.date(2025, 10, 20),
-            datetime.date(2025, 11, 4), datetime.date(2025, 11, 24), datetime.date(2025, 12, 22),
-            datetime.date(2026, 2, 9), datetime.date(2026, 2, 16)
-        ],
-        'Al-Hilal': [
-            datetime.date(2025, 9, 16), datetime.date(2025, 9, 29), datetime.date(2025, 10, 21),
-            datetime.date(2025, 11, 3), datetime.date(2025, 11, 25), datetime.date(2025, 12, 22),
-            datetime.date(2026, 2, 9), datetime.date(2026, 2, 16)
-        ],
-        'Al-Nassr': [
-            datetime.date(2025, 9, 17), datetime.date(2025, 10, 1), datetime.date(2025, 10, 22),
-            datetime.date(2025, 11, 5), datetime.date(2025, 11, 26), datetime.date(2025, 12, 24)
-        ],
-        'Al-Shabab': [
-            datetime.date(2025, 10, 1), datetime.date(2025, 10, 21), datetime.date(2025, 11, 5),
-            datetime.date(2025, 12, 24), datetime.date(2026, 2, 1), datetime.date(2026, 2, 17)
-        ]
-    }
+    'Al-Ittihad': [
+        datetime.date(2025, 9, 15),
+        datetime.date(2025, 9, 30),
+        datetime.date(2025, 10, 20),
+        datetime.date(2025, 10, 28),
+        datetime.date(2025, 11, 4),
+        datetime.date(2025, 11, 24),
+        datetime.date(2025, 12, 23),
+        datetime.date(2026, 2, 10),
+        datetime.date(2026, 2, 17)
+    ],
+    'Al-Ahli': [
+        datetime.date(2025, 9, 15),
+        datetime.date(2025, 9, 29),
+        datetime.date(2025, 10, 20),
+        datetime.date(2025, 10, 27),
+        datetime.date(2025, 11, 4),
+        datetime.date(2025, 11, 24),
+        datetime.date(2025, 12, 22),
+        datetime.date(2026, 2, 9),
+        datetime.date(2026, 2, 16)
+    ],
+    'Al-Hilal': [
+        datetime.date(2025, 9, 16),
+        datetime.date(2025, 9, 29),
+        datetime.date(2025, 10, 21),
+        datetime.date(2025, 10, 28),
+        datetime.date(2025, 11, 3),
+        datetime.date(2025, 11, 25),
+        datetime.date(2025, 12, 22),
+        datetime.date(2026, 2, 9),
+        datetime.date(2026, 2, 16)
+    ],
+    'Al-Nassr': [
+        datetime.date(2025, 9, 17),
+        datetime.date(2025, 10, 1),
+        datetime.date(2025, 10, 22),
+        datetime.date(2025, 10, 28),
+        datetime.date(2025, 11, 5),
+        datetime.date(2025, 11, 26),
+        datetime.date(2025, 12, 24)
+    ],
+    'Al-Shabab': [
+        datetime.date(2025, 10, 1),
+        datetime.date(2025, 10, 21),
+        datetime.date(2025, 10, 28),
+        datetime.date(2025, 11, 5),
+        datetime.date(2025, 12, 24),
+        datetime.date(2026, 2, 1),
+        datetime.date(2026, 2, 17)
+    ],
+    'Al-Khaleej': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Fateh': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Khulood': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Batin': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Qadsiah': [
+        datetime.date(2025, 10, 28)
+    ],
+    'Al-Okhdood': [
+        datetime.date(2025, 10, 28)
+    ],
+    'Al-Taawoun': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Riyadh': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Najma': [
+        datetime.date(2025, 10, 27)
+    ],
+    'Al-Hazem': [
+        datetime.date(2025, 10, 28)
+    ],
+    'Al-Raed': [
+        datetime.date(2025, 10, 28)
+    ],
+}
+    
     
     unavailable_dates = TEAM_UNAVAILABILITY.get(team, [])
     
@@ -3629,6 +3691,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
