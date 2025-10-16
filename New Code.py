@@ -1803,7 +1803,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                         <div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>
                         <div>🏟️ {scenario.stadium} ({scenario.city})</div>
                         
-                        <div>👥 Attendance: {scenario.attendance_percentage}%</div>
+                        👥 Attendance: {scenario.attendance_percentage}%
                        
                         {availability_message}
                     </div>
@@ -3458,6 +3458,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
