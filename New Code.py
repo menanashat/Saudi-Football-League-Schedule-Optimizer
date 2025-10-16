@@ -1622,6 +1622,65 @@ def validate_and_redistribute_matches(matches_from_excel, week_start_dates, matc
     return redistributed
 
 # Modified display_week_scenarios function with stadium dropdown
+def get_last_match_info(team, current_week, current_date):
+    """
+    Get the last match played by a team before the current date.
+    Returns: (date, opponent, stadium) or None if no previous match
+    """
+    if 'schedule_df' not in st.session_state:
+        return None
+    
+    schedule_df = st.session_state.schedule_df
+    if schedule_df.empty:
+        return None
+    
+    # Filter for selected matches only
+    selected_matches = schedule_df[schedule_df['is_selected'] == True].copy()
+    
+    if selected_matches.empty:
+        return None
+    
+    # Convert date to datetime for comparison
+    selected_matches['date_dt'] = pd.to_datetime(selected_matches['date'])
+    current_date_dt = pd.to_datetime(current_date)
+    
+    # Find matches where the team played (as home or away) before current date
+    team_matches = selected_matches[
+        ((selected_matches['home_team'] == team) | (selected_matches['away_team'] == team)) &
+        (selected_matches['date_dt'] < current_date_dt)
+    ].sort_values('date_dt', ascending=False)
+    
+    if team_matches.empty:
+        return None
+    
+    # Get the most recent match
+    last_match = team_matches.iloc[0]
+    opponent = last_match['away_team'] if last_match['home_team'] == team else last_match['home_team']
+    
+    return {
+        'date': last_match['date'],
+        'opponent': opponent,
+        'stadium': last_match['stadium'],
+        'was_home': last_match['home_team'] == team
+    }
+
+def get_scenario_time_context(scenario):
+    """
+    Get the context/reason why a scenario time was selected.
+    Returns a string describing the time calculation method.
+    """
+    time_int = int(scenario.time.split(':')[0])
+    
+    # Scenarios at 20:00 and 21:00 are fixed times
+    if time_int in [20, 21]:
+        return "⏰ Fixed Time Slot"
+    # Earlier times are calculated based on prayer times
+    elif time_int < 20:
+        return "🕌 Calculated from Isha Prayer Time"
+    # Later times after 21:00
+    else:
+        return "🌙 Calculated from Maghrib Prayer Time"
+
 def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week with stadium dropdown selection.
@@ -1682,13 +1741,50 @@ def display_week_scenarios(week_number, matches_from_excel):
             
             if selected_scenario:
                 day_name = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').strftime('%A')
+                time_context = get_scenario_time_context(selected_scenario)
+                
+                # Get last match info for both teams (only show if week > 1)
+                last_match_html = ""
+                if week_number > 1:
+                    home_last = get_last_match_info(home, week_number, selected_scenario.date)
+                    away_last = get_last_match_info(away, week_number, selected_scenario.date)
+                    
+                    last_match_parts = []
+                    if home_last:
+                        location = "Home" if home_last['was_home'] else "Away"
+                        last_match_parts.append(
+                            f"<b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']} at {home_last['stadium']}"
+                        )
+                    else:
+                        last_match_parts.append(f"<b>{home}</b>: No previous match")
+                    
+                    if away_last:
+                        location = "Home" if away_last['was_home'] else "Away"
+                        last_match_parts.append(
+                            f"<b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']} at {away_last['stadium']}"
+                        )
+                    else:
+                        last_match_parts.append(f"<b>{away}</b>: No previous match")
+                    
+                    last_match_html = f"""
+                        <div style='margin-top: 8px; padding: 8px; background-color: #f0f8ff; border-radius: 5px;'>
+                            <div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match Played:</div>
+                            <div style='font-size: 0.9em; color: #155724;'>
+                                {last_match_parts[0]}<br>
+                                {last_match_parts[1]}
+                            </div>
+                        </div>
+                    """
+                
                 st.markdown(f"""
                 <div style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 10px 0;">
                     <div style="font-weight: bold; color: #155724; font-size: 18px;">✅ {home} vs {away} (SELECTED)</div>
                     <div style="color: #155724; margin-top: 5px;">
                         📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>
                         🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
-                        📊 Score: {selected_scenario.suitability_score} | 👥 Attendance: {selected_scenario.attendance_percentage}% | 💰 Profit: ${selected_scenario.profit:,}
+                        {time_context}<br>
+                        👥 Attendance: {selected_scenario.attendance_percentage}%
+                        {last_match_html}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1703,13 +1799,6 @@ def display_week_scenarios(week_number, matches_from_excel):
             continue
 
         scenarios = st.session_state.scenario_manager.get_scenarios_for_match(match_id)
-        
-        # Debug: Log scenario details
-        # st.write(f"🔍 DEBUG: {home} vs {away}")
-        # st.write(f"   - Total scenarios in manager: {len(scenarios)}")
-        # if scenarios:
-        #     scenario_dates = [s.date for s in scenarios]
-        #     st.write(f"   - Scenario dates: {set(scenario_dates)}")
         
         if not scenarios:
             st.warning(f"No scenarios generated for {home} vs {away}.")
@@ -1751,11 +1840,6 @@ def display_week_scenarios(week_number, matches_from_excel):
             s.conflict_reason = conflict_reason
             if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
                 available_scenarios.append(s)
-        
-        # Debug: Show filtering results
-        # st.write(f"   - Filtered out (outside week range): {filtered_out_count}")
-        # st.write(f"   - Available to display: {len(available_scenarios)}")
-        # st.write(f"   - Week days: {[d.strftime('%Y-%m-%d') for d in days]}")
 
         # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
@@ -1795,6 +1879,38 @@ def display_week_scenarios(week_number, matches_from_excel):
                 availability_message = f"<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: {scenario.conflict_reason}</div>" if not scenario.is_available else ""
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
+                time_context = get_scenario_time_context(scenario)
+                
+                # Get last match info for both teams (only show if week > 1)
+                last_match_html = ""
+                if week_number > 1:
+                    home_last = get_last_match_info(home, week_number, scenario.date)
+                    away_last = get_last_match_info(away, week_number, scenario.date)
+                    
+                    last_match_parts = []
+                    if home_last:
+                        location = "Home" if home_last['was_home'] else "Away"
+                        last_match_parts.append(
+                            f"<b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']}"
+                        )
+                    else:
+                        last_match_parts.append(f"<b>{home}</b>: No previous match")
+                    
+                    if away_last:
+                        location = "Home" if away_last['was_home'] else "Away"
+                        last_match_parts.append(
+                            f"<b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']}"
+                        )
+                    else:
+                        last_match_parts.append(f"<b>{away}</b>: No previous match")
+                    
+                    last_match_html = f"""
+                        <div style='margin-top: 5px; padding: 6px; background-color: rgba(255,255,255,0.5); border-radius: 5px; font-size: 0.85em;'>
+                            <div style='font-weight: bold; margin-bottom: 3px;'>📋 Last Match:</div>
+                            {last_match_parts[0]}<br>
+                            {last_match_parts[1]}
+                        </div>
+                    """
                 
                 # Display scenario card
                 st.markdown(
@@ -1802,10 +1918,9 @@ def display_week_scenarios(week_number, matches_from_excel):
                     <div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">
                         <div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>
                         <div>🏟️ {scenario.stadium} ({scenario.city})</div>
-                        <div>📊 Score: {scenario.suitability_score}</div>
+                        <div style='margin-top: 5px;'>{time_context}</div>
                         <div>👥 Attendance: {scenario.attendance_percentage}%</div>
-                        <div>💰 Profit: ${scenario.profit:,}</div>
-                       
+                        {last_match_html}
                         {availability_message}
                     </div>
                     """, unsafe_allow_html=True
@@ -1941,7 +2056,8 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-        
+
+
 def get_teams_for_match(match_id):
     """
     Helper function to get team names for a given match_id.
@@ -3459,6 +3575,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
