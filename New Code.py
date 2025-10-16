@@ -1821,6 +1821,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 </div>
                 """, unsafe_allow_html=True)
                 
+                
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
                     current_date = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').date()
@@ -3599,6 +3600,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
