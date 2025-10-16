@@ -1916,7 +1916,10 @@ def display_week_scenarios(week_number, matches_from_excel):
                     card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
                     border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
                 
-                availability_message = f"<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: {scenario.conflict_reason}</div>" if not scenario.is_available else ""
+                availability_message = ""
+                if not scenario.is_available:
+                    availability_message = f"<div style='color: #d32f2f; font-weight: bold; margin-top: 8px;'>⚠️ Unavailable: {scenario.conflict_reason}</div>"
+
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(scenario, available_scenarios)
@@ -3607,6 +3610,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
