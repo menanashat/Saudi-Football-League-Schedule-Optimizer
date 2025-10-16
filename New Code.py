@@ -1688,7 +1688,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     <div style="color: #155724; margin-top: 5px;">
                         📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>
                         🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
-                         👥 Attendance: {selected_scenario.attendance_percentage}% 
+                        📊 Score: {selected_scenario.suitability_score} | 👥 Attendance: {selected_scenario.attendance_percentage}% | 💰 Profit: ${selected_scenario.profit:,}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1802,8 +1802,9 @@ def display_week_scenarios(week_number, matches_from_excel):
                     <div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">
                         <div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>
                         <div>🏟️ {scenario.stadium} ({scenario.city})</div>
-                        
-                        👥 Attendance: {scenario.attendance_percentage}%
+                        <div>📊 Score: {scenario.suitability_score}</div>
+                        <div>👥 Attendance: {scenario.attendance_percentage}%</div>
+                        <div>💰 Profit: ${scenario.profit:,}</div>
                        
                         {availability_message}
                     </div>
@@ -3458,6 +3459,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
