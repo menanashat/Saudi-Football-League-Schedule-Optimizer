@@ -1962,7 +1962,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                         <div style='margin-top: 5px;'>{time_context}</div>
                         <div>👥 Attendance: {scenario.attendance_percentage}%</div>
                         {last_match_html}
-                        {availability_html}
+                        {availability_section}
                     </div>
                     """, unsafe_allow_html=True
                 )
@@ -3615,6 +3615,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
