@@ -1918,7 +1918,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 
                 availability_message = ""
                 if not scenario.is_available:
-                    availability_message = f"<div style='color: #d32f2f; font-weight: bold; margin-top: 8px;'>⚠️ Unavailable: {scenario.conflict_reason}</div>"
+                    availability_message = f"⚠️ <span style='color: #d32f2f; font-weight: bold;'>Unavailable: {scenario.conflict_reason}</span>"
 
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
@@ -3610,6 +3610,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
