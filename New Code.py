@@ -1809,17 +1809,26 @@ def display_week_scenarios(week_number, matches_from_excel):
                         last_match_display += "</div>"
                 
                 st.markdown(f"""
-                <div style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 10px 0;">
-                    <div style="font-weight: bold; color: #155724; font-size: 18px;">✅ {home} vs {away} (SELECTED)</div>
-                    <div style="color: #155724; margin-top: 5px;">
-                        📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>
-                        🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
-                        {time_context}<br>
-                        👥 Attendance: {selected_scenario.attendance_percentage}%
-                        {last_match_display}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                        <div style="
+                            background-color: #d4edda; 
+                            border: 2px solid #28a745; 
+                            border-radius: 10px; 
+                            padding: 15px; 
+                            margin: 10px 0;
+                        ">
+                            <div style="font-weight: bold; color: #155724; font-size: 18px;">
+                                ✅ {home} vs {away} (SELECTED)
+                            </div>
+                            <div style="color: #155724; margin-top: 5px;">
+                                📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>
+                                🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
+                                {time_context}<br>
+                                👥 Attendance: {selected_scenario.attendance_percentage}%<br>
+                                {last_match_display}
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+
                 
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
@@ -3599,6 +3608,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
