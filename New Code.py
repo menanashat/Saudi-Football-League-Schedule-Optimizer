@@ -1705,22 +1705,29 @@ def get_last_match_info(team, current_week, current_date):
         'was_home': last_match['home_team'] == team
     }
 
-def get_scenario_time_context(scenario_index):
+def get_scenario_time_context(scenario, available_scenarios):
     """
     Get the context/reason why a scenario time was selected.
     Returns a string describing the time calculation method based on scenario position.
     
     Args:
-        scenario_index: The index of the scenario (0-3)
+        scenario: The current scenario object
+        available_scenarios: List of all available scenarios for this match
     """
-    if scenario_index == 0:
-        return "🌙 Calculated from Maghrib Prayer Time"
-    elif scenario_index == 1:
-        return "🕌 Calculated from Isha Prayer Time"
-    elif scenario_index in [2, 3]:
-        return "⏰ Fixed Time"
-    else:
-        return "⏰ Fixed Time"  # Default for any other scenarios
+    try:
+        # Find the index of this scenario in the available scenarios list
+        scenario_index = available_scenarios.index(scenario)
+        
+        if scenario_index == 0:
+            return "🌙 Calculated from Maghrib Prayer Time"
+        elif scenario_index == 1:
+            return "🕌 Calculated from Isha Prayer Time"
+        elif scenario_index in [2, 3]:
+            return "⏰ Fixed Time"
+        else:
+            return "⏰ Fixed Time"  # Default for any other scenarios
+    except (ValueError, AttributeError):
+        return "⏰ Fixed Time"  # Fallback if scenario not found
 
 def display_week_scenarios(week_number, matches_from_excel):
     """
@@ -3600,6 +3607,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
