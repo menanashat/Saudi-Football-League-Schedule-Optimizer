@@ -1782,7 +1782,7 @@ def display_week_scenarios(week_number, matches_from_excel):
             
             if selected_scenario:
                 day_name = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').strftime('%A')
-                time_context = get_scenario_time_context(selected_scenario)
+                time_context = get_scenario_time_context(selected_scenario, scenarios)
                 
                 # Get last match info for both teams (only show if week > 1)
                 last_match_display = ""
@@ -1912,7 +1912,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 availability_message = f"<div style='color: #d32f2f; font-weight: bold;'>⚠️ Unavailable: {scenario.conflict_reason}</div>" if not scenario.is_available else ""
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
-                time_context = get_scenario_time_context(scenario)
+                time_context = get_scenario_time_context(scenario, available_scenarios)
                 
                 # Get last match info for both teams (only show if week > 1)
                 last_match_display = ""
@@ -3600,6 +3600,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
