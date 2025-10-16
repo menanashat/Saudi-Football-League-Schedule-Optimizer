@@ -1728,7 +1728,7 @@ def get_scenario_time_context(scenario, available_scenarios):
             return "⏰ Fixed Time"  # Default for any other scenarios
     except (ValueError, AttributeError):
         return "⏰ Fixed Time"  # Fallback if scenario not found
-        def display_week_scenarios(week_number, matches_from_excel):
+def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week with stadium dropdown selection.
     """
@@ -3611,6 +3611,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
