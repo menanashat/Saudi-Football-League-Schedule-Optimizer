@@ -1915,10 +1915,11 @@ def display_week_scenarios(week_number, matches_from_excel):
                     card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
                     border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
                 
-                # Build availability message
-                availability_html = ""
+                # Build availability message - only show text, formatting will be in the card
+                availability_text = ""
                 if not scenario.is_available:
-                    availability_html = f"<div style='color: #d32f2f; font-weight: bold; margin-top: 8px;'>⚠️ Unavailable: {scenario.conflict_reason}</div>"
+                    availability_text = f"⚠️ Unavailable: {scenario.conflict_reason}"
+
 
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(scenario, available_scenarios)
@@ -1946,6 +1947,11 @@ def display_week_scenarios(week_number, matches_from_excel):
                             last_match_html += f"<div><b>{away}</b>: No previous match</div>"
                         
                         last_match_html += "</div>"
+                # Build the availability section HTML
+                availability_section = ""
+                if availability_text:
+                    availability_section = f"<div style='color: #d32f2f; font-weight: bold; margin-top: 8px;'>{availability_text}</div>"
+        
                 
                 # Display scenario card
                 st.markdown(
@@ -3609,6 +3615,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
