@@ -1725,15 +1725,15 @@ def get_scenario_time_context(scenario, scenario_index=None):
         elif scenario_index == 1:
             return "⏰ Isha prayer time"
         else:
-            # For 3rd scenario onwards, show the fixed time
-            return f"⏰ {scenario.time}"
+            # For 3rd and 4th scenarios onwards, show Fixed Time
+            return "⏰ Fixed Time"
     
     # Legacy logic for when scenario_index is not provided
     time_int = int(scenario.time.split(':')[0])
     
     # Scenarios at 20:00 and 21:00 are fixed times
     if time_int in [20, 21]:
-        return f"⏰ {scenario.time}"
+        return "⏰ Fixed Time"
     # Earlier times are calculated based on prayer times
     elif time_int < 20:
         return "🕌 Calculated from Isha Prayer Time"
@@ -3619,6 +3619,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
