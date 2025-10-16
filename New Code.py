@@ -1704,30 +1704,40 @@ def get_last_match_info(team, current_week, current_date):
         'stadium': last_match['stadium'],
         'was_home': last_match['home_team'] == team
     }
-
 def get_scenario_time_context(scenario, available_scenarios):
     """
     Get the context/reason why a scenario time was selected.
-    Returns a string describing the time calculation method based on scenario position.
+    Returns a string describing the time calculation method based on scenario position per day.
     
     Args:
         scenario: The current scenario object
         available_scenarios: List of all available scenarios for this match
     """
     try:
-        # Find the index of this scenario in the available scenarios list
-        scenario_index = available_scenarios.index(scenario)
+        import datetime
         
-        if scenario_index == 0:
+        # Get the date of the current scenario
+        current_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
+        
+        # Group scenarios by date and find position within the same day
+        scenarios_same_day = [s for s in available_scenarios 
+                             if datetime.datetime.strptime(s.date, '%Y-%m-%d').date() == current_date]
+        
+        # Sort scenarios of the same day by time
+        scenarios_same_day.sort(key=lambda s: datetime.datetime.strptime(s.time, '%H:%M').time())
+        
+        # Find the index of this scenario within its day
+        scenario_index_in_day = scenarios_same_day.index(scenario)
+        
+        if scenario_index_in_day == 0:
             return "🌙 Calculated from Maghrib Prayer Time"
-        elif scenario_index == 1:
+        elif scenario_index_in_day == 1:
             return "🕌 Calculated from Isha Prayer Time"
-        elif scenario_index in [2, 3]:
-            return "⏰ Fixed Time"
         else:
-            return "⏰ Fixed Time"  # Default for any other scenarios
-    except (ValueError, AttributeError):
+            return "⏰ Fixed Time"
+    except (ValueError, AttributeError, IndexError):
         return "⏰ Fixed Time"  # Fallback if scenario not found
+
 
 def display_week_scenarios(week_number, matches_from_excel):
     """
@@ -2101,7 +2111,6 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-
 
 def get_teams_for_match(match_id):
     """
@@ -3620,6 +3629,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
