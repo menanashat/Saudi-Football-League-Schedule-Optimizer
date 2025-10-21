@@ -1682,11 +1682,10 @@ def validate_and_redistribute_matches(matches_from_excel, week_start_dates, matc
         
         st.write(f"Redistributed week {week}: {[(h, a, d.strftime('%Y-%m-%d')) for h, a, d in redistributed[week]]}")
     return redistributed
-
 def get_last_match_info(team, current_week, current_date):
     """
     Get the last match played by a team before the current date.
-    Returns: (date, opponent, stadium) or None if no previous match
+    Returns: (date, opponent, stadium, rest_days) or None if no previous match
     """
     if 'schedule_df' not in st.session_state:
         return None
@@ -1718,54 +1717,121 @@ def get_last_match_info(team, current_week, current_date):
     last_match = team_matches.iloc[0]
     opponent = last_match['away_team'] if last_match['home_team'] == team else last_match['home_team']
     
+    # Calculate rest days
+    rest_days = (current_date_dt.date() - last_match['date_dt'].date()).days
+    
     return {
         'date': last_match['date'],
         'opponent': opponent,
         'stadium': last_match['stadium'],
-        'was_home': last_match['home_team'] == team
+        'was_home': last_match['home_team'] == team,
+        'rest_days': rest_days
     }
 
-def get_last_match_info(team, current_week, current_date):
+
+def get_team_rest_days(team, match_date):
     """
-    Get the last match played by a team before the current date.
-    Returns: (date, opponent, stadium) or None if no previous match
+    Calculate rest days for a team considering both selected matches and TEAM_UNAVAILABILITY.
+    
+    Args:
+        team (str): Team name
+        match_date (str or datetime.date): Date of the current match
+    
+    Returns:
+        tuple: (rest_days, last_match_date, match_type)
+               match_type can be 'league' or 'external'
     """
-    if 'schedule_df' not in st.session_state:
-        return None
+    import datetime
     
-    schedule_df = st.session_state.schedule_df
-    if schedule_df.empty:
-        return None
-    
-    # Filter for selected matches only
-    selected_matches = schedule_df[schedule_df['is_selected'] == True].copy()
-    
-    if selected_matches.empty:
-        return None
-    
-    # Convert date to datetime for comparison
-    selected_matches['date_dt'] = pd.to_datetime(selected_matches['date'])
-    current_date_dt = pd.to_datetime(current_date)
-    
-    # Find matches where the team played (as home or away) before current date
-    team_matches = selected_matches[
-        ((selected_matches['home_team'] == team) | (selected_matches['away_team'] == team)) &
-        (selected_matches['date_dt'] < current_date_dt)
-    ].sort_values('date_dt', ascending=False)
-    
-    if team_matches.empty:
-        return None
-    
-    # Get the most recent match
-    last_match = team_matches.iloc[0]
-    opponent = last_match['away_team'] if last_match['home_team'] == team else last_match['home_team']
-    
-    return {
-        'date': last_match['date'],
-        'opponent': opponent,
-        'stadium': last_match['stadium'],
-        'was_home': last_match['home_team'] == team
+    TEAM_UNAVAILABILITY = {
+        'Al-Ittihad': [
+            datetime.date(2025, 9, 15), datetime.date(2025, 9, 30),
+            datetime.date(2025, 10, 20), datetime.date(2025, 10, 28),
+            datetime.date(2025, 11, 4), datetime.date(2025, 11, 24),
+            datetime.date(2025, 12, 23), datetime.date(2026, 2, 10),
+            datetime.date(2026, 2, 17)
+        ],
+        'Al-Ahli': [
+            datetime.date(2025, 9, 15), datetime.date(2025, 9, 29),
+            datetime.date(2025, 10, 20), datetime.date(2025, 10, 27),
+            datetime.date(2025, 11, 4), datetime.date(2025, 11, 24),
+            datetime.date(2025, 12, 22), datetime.date(2026, 2, 9),
+            datetime.date(2026, 2, 16)
+        ],
+        'Al-Hilal': [
+            datetime.date(2025, 9, 16), datetime.date(2025, 9, 29),
+            datetime.date(2025, 10, 21), datetime.date(2025, 10, 28),
+            datetime.date(2025, 11, 3), datetime.date(2025, 11, 25),
+            datetime.date(2025, 12, 22), datetime.date(2026, 2, 9),
+            datetime.date(2026, 2, 16)
+        ],
+        'Al-Nassr': [
+            datetime.date(2025, 9, 17), datetime.date(2025, 10, 1),
+            datetime.date(2025, 10, 22), datetime.date(2025, 10, 28),
+            datetime.date(2025, 11, 5), datetime.date(2025, 11, 26),
+            datetime.date(2025, 12, 24)
+        ],
+        'Al-Shabab': [
+            datetime.date(2025, 10, 1), datetime.date(2025, 10, 21),
+            datetime.date(2025, 10, 28), datetime.date(2025, 11, 5),
+            datetime.date(2025, 12, 24), datetime.date(2026, 2, 1),
+            datetime.date(2026, 2, 17)
+        ],
+        'Al-Khaleej': [datetime.date(2025, 10, 27)],
+        'Al-Fateh': [datetime.date(2025, 10, 27)],
+        'Al-Khulood': [datetime.date(2025, 10, 27)],
+        'Al-Batin': [datetime.date(2025, 10, 27)],
+        'Al-Qadsiah': [datetime.date(2025, 10, 28)],
+        'Al-Okhdood': [datetime.date(2025, 10, 28)],
+        'Al-Taawoun': [datetime.date(2025, 10, 27)],
+        'Al-Riyadh': [datetime.date(2025, 10, 27)],
+        'Al-Najma': [datetime.date(2025, 10, 27)],
+        'Al-Hazem': [datetime.date(2025, 10, 28)],
+        'Al-Raed': [datetime.date(2025, 10, 28)],
     }
+    
+    # Convert match_date to datetime.date if it's a string
+    if isinstance(match_date, str):
+        match_date = datetime.datetime.strptime(match_date, '%Y-%m-%d').date()
+    
+    # Get external matches for this team
+    external_matches = TEAM_UNAVAILABILITY.get(team, [])
+    
+    # Get league matches from schedule_df
+    league_matches = []
+    if 'schedule_df' in st.session_state and not st.session_state.schedule_df.empty:
+        schedule_df = st.session_state.schedule_df
+        selected_matches = schedule_df[schedule_df['is_selected'] == True].copy()
+        
+        if not selected_matches.empty:
+            selected_matches['date_dt'] = pd.to_datetime(selected_matches['date']).dt.date
+            team_matches = selected_matches[
+                ((selected_matches['home_team'] == team) | (selected_matches['away_team'] == team)) &
+                (selected_matches['date_dt'] < match_date)
+            ]
+            league_matches = team_matches['date_dt'].tolist()
+    
+    # Combine all matches and filter only those before match_date
+    all_matches = []
+    for ext_date in external_matches:
+        if ext_date < match_date:
+            all_matches.append((ext_date, 'external'))
+    
+    for league_date in league_matches:
+        all_matches.append((league_date, 'league'))
+    
+    # Sort by date and get the most recent one
+    if not all_matches:
+        return None, None, None
+    
+    all_matches.sort(key=lambda x: x[0], reverse=True)
+    last_match_date, match_type = all_matches[0]
+    
+    # Calculate rest days
+    rest_days = (match_date - last_match_date).days
+    
+    return rest_days, last_match_date, match_type
+
 def get_scenario_time_context(scenario, available_scenarios):
     """
     Get the context/reason why a scenario time was selected.
@@ -1865,28 +1931,34 @@ def display_week_scenarios(week_number, matches_from_excel):
                 
                 # Get last match info for both teams (only show if week > 1)
                 last_match_html = ""
+                # In the SELECTED match section (around line 110):
                 if week_number > 1:
-                    home_last = get_last_match_info(home, week_number, selected_scenario.date)
-                    away_last = get_last_match_info(away, week_number, selected_scenario.date)
+                    home_rest = get_team_rest_days(home, selected_scenario.date)
+                    away_rest = get_team_rest_days(away, selected_scenario.date)
                     
-                    if home_last or away_last:
+                    if home_rest[0] is not None or away_rest[0] is not None:
                         last_match_html = "<div style='margin-top: 8px; padding: 8px; background-color: #f0f8ff; border-radius: 5px;'>"
-                        last_match_html += "<div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match Played:</div>"
+                        last_match_html += "<div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match & Rest Days:</div>"
                         
-                        if home_last:
-                            location = "Home" if home_last['was_home'] else "Away"
-                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']} at {home_last['stadium']}</div>"
+                        if home_rest[0] is not None:
+                            rest_days, last_date, match_type = home_rest
+                            match_icon = "🏆" if match_type == 'league' else "✈️"
+                            match_label = "League" if match_type == 'league' else "External"
+                            rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
+                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: {match_icon} {match_label} match on {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days} days rest</span></div>"
                         else:
                             last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: No previous match</div>"
                         
-                        if away_last:
-                            location = "Home" if away_last['was_home'] else "Away"
-                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']} at {away_last['stadium']}</div>"
+                        if away_rest[0] is not None:
+                            rest_days, last_date, match_type = away_rest
+                            match_icon = "🏆" if match_type == 'league' else "✈️"
+                            match_label = "League" if match_type == 'league' else "External"
+                            rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
+                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: {match_icon} {match_label} match on {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days} days rest</span></div>"
                         else:
                             last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: No previous match</div>"
                         
-                        last_match_html += "</div>"
-                
+                        last_match_html += "</div>"                
                 st.markdown(f"""
                 <div style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 10px 0;">
                     <div style="font-weight: bold; color: #155724; font-size: 18px;">✅ {home} vs {away} (SELECTED)</div>
@@ -1994,22 +2066,26 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Get last match info for both teams (only show if week > 1)
                 last_match_html = ""
                 if week_number > 1:
-                    home_last = get_last_match_info(home, week_number, scenario.date)
-                    away_last = get_last_match_info(away, week_number, scenario.date)
+                    home_rest = get_team_rest_days(home, scenario.date)
+                    away_rest = get_team_rest_days(away, scenario.date)
                     
-                    if home_last or away_last:
+                    if home_rest[0] is not None or away_rest[0] is not None:
                         last_match_html = "<div style='margin-top: 8px; padding: 6px; background-color: rgba(255,255,255,0.6); border-radius: 5px; font-size: 0.85em;'>"
-                        last_match_html += "<div style='font-weight: bold; margin-bottom: 3px;'>📋 Last Match:</div>"
+                        last_match_html += "<div style='font-weight: bold; margin-bottom: 3px;'>📋 Rest Days:</div>"
                         
-                        if home_last:
-                            location = "Home" if home_last['was_home'] else "Away"
-                            last_match_html += f"<div><b>{home}</b>: vs {home_last['opponent']} ({location}) on {home_last['date']}</div>"
+                        if home_rest[0] is not None:
+                            rest_days, last_date, match_type = home_rest
+                            match_icon = "🏆" if match_type == 'league' else "✈️"
+                            rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
+                            last_match_html += f"<div><b>{home}</b>: {match_icon} {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days}d</span></div>"
                         else:
                             last_match_html += f"<div><b>{home}</b>: No previous match</div>"
                         
-                        if away_last:
-                            location = "Home" if away_last['was_home'] else "Away"
-                            last_match_html += f"<div><b>{away}</b>: vs {away_last['opponent']} ({location}) on {away_last['date']}</div>"
+                        if away_rest[0] is not None:
+                            rest_days, last_date, match_type = away_rest
+                            match_icon = "🏆" if match_type == 'league' else "✈️"
+                            rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
+                            last_match_html += f"<div><b>{away}</b>: {match_icon} {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days}d</span></div>"
                         else:
                             last_match_html += f"<div><b>{away}</b>: No previous match</div>"
                         
@@ -3691,121 +3767,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
