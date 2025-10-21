@@ -1739,6 +1739,114 @@ def get_last_match_info(team, current_week, current_date):
     }
 
 
+
+
+def get_team_ranking():
+    """
+    Calculate team rankings based on last 4 years' performance (2021-2024).
+    Returns dictionary with team rankings and average positions.
+    """
+    # Historical rankings data
+    historical_rankings = {
+        2021: {'Al-Hilal': 1, 'Al-Ittihad': 2, 'Al-Nassr': 3},
+        2022: {'Al-Ittihad': 1, 'Al-Nassr': 2, 'Al-Hilal': 3},
+        2023: {'Al-Hilal': 1, 'Al-Nassr': 2, 'Al-Ahli': 3},
+        2024: {'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3}
+    }
+    
+    # Calculate average rankings
+    team_totals = {}
+    team_counts = {}
+    
+    for year, rankings in historical_rankings.items():
+        for team, rank in rankings.items():
+            if team not in team_totals:
+                team_totals[team] = 0
+                team_counts[team] = 0
+            team_totals[team] += rank
+            team_counts[team] += 1
+    
+    # Calculate averages
+    team_averages = {
+        team: team_totals[team] / team_counts[team] 
+        for team in team_totals
+    }
+    
+    # Sort by average (lower is better)
+    sorted_teams = sorted(team_averages.items(), key=lambda x: x[1])
+    
+    # Assign current rankings (1-3 for top 3 teams)
+    current_rankings = {}
+    for i, (team, avg) in enumerate(sorted_teams[:3], 1):
+        current_rankings[team] = {
+            'rank': i,
+            'average': round(avg, 2),
+            'appearances': team_counts[team]
+        }
+    
+    return current_rankings
+
+
+def get_team_rank_badge(team):
+    """
+    Get a visual badge for team ranking if team is in top 3.
+    Returns HTML string with badge or empty string.
+    """
+    rankings = get_team_ranking()
+    
+    if team not in rankings:
+        return ""
+    
+    rank_info = rankings[team]
+    rank = rank_info['rank']
+    avg = rank_info['average']
+    
+    # Define badge styles
+    badge_styles = {
+        1: {'icon': '🥇', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': 'CHAMPION'},
+        2: {'icon': '🥈', 'color': '#C0C0C0', 'bg': '#F5F5F5', 'border': '#C0C0C0', 'text': 'ELITE'},
+        3: {'icon': '🥉', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'TOP 3'}
+    }
+    
+    style = badge_styles[rank]
+    
+    badge_html = f"""
+    <div style='display: inline-block; background: {style['bg']}; border: 2px solid {style['border']}; 
+                border-radius: 8px; padding: 4px 10px; margin: 5px 0; font-size: 0.85em;'>
+        <span style='font-size: 1.2em;'>{style['icon']}</span>
+        <span style='color: {style['color']}; font-weight: bold; margin-left: 4px;'>#{rank} {style['text']}</span>
+        <span style='color: #666; font-size: 0.9em; margin-left: 6px;'>(Avg: {avg})</span>
+    </div>
+    """
+    
+    return badge_html
+
+
+def get_match_prestige_level(home_team, away_team):
+    """
+    Determine the prestige level of a match based on team rankings.
+    Returns tuple: (prestige_level, description, icon)
+    """
+    rankings = get_team_ranking()
+    
+    home_in_top3 = home_team in rankings
+    away_in_top3 = away_team in rankings
+    
+    if home_in_top3 and away_in_top3:
+        home_rank = rankings[home_team]['rank']
+        away_rank = rankings[away_team]['rank']
+        
+        # Classic rivalry (both in top 3)
+        if home_rank == 1 or away_rank == 1:
+            return ('elite', 'ELITE CLASH', '⭐⭐⭐')
+        else:
+            return ('high', 'TOP TIER MATCH', '⭐⭐')
+    elif home_in_top3 or away_in_top3:
+        return ('medium', 'FEATURED MATCH', '⭐')
+    else:
+        return ('regular', '', '')
+
+
 def get_team_rest_days(team, match_date):
     """
     Calculate rest days for a team considering both selected matches and TEAM_UNAVAILABILITY.
@@ -1926,7 +2034,6 @@ def get_scenario_time_context(scenario, available_scenarios):
     except (ValueError, AttributeError, IndexError):
         return "⏰ Fixed Time"  # Fallback if scenario not found
 
-
 def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week with stadium dropdown selection.
@@ -1984,14 +2091,36 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if scenario.scenario_id == scenario_id:
                     selected_scenario = scenario
                     break
-            
+                        
+            # For SELECTED matches
             if selected_scenario:
                 day_name = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(selected_scenario, scenarios)
+                                
+                # Get team rankings for the card
+                home_badge = get_team_rank_badge(home)
+                away_badge = get_team_rank_badge(away)
+                prestige_level, prestige_desc, prestige_icon = get_match_prestige_level(home, away)
                 
-                # Get last match info for both teams (only show if week > 1)
+                # Create prestige badge if applicable
+                prestige_html = ""
+                if prestige_level != 'regular':
+                    prestige_colors = {
+                        'elite': {'bg': '#FFD700', 'text': '#000'},
+                        'high': {'bg': '#4CAF50', 'text': '#FFF'},
+                        'medium': {'bg': '#2196F3', 'text': '#FFF'}
+                    }
+                    color = prestige_colors[prestige_level]
+                    prestige_html = f"""
+                    <div style='background: {color['bg']}; color: {color['text']}; 
+                                display: inline-block; padding: 5px 12px; border-radius: 20px; 
+                                font-weight: bold; font-size: 0.9em; margin: 5px 0;'>
+                        {prestige_icon} {prestige_desc}
+                    </div>
+                    """
+                
+                # Get rest days (FIXED: use selected_scenario.date instead of scenario.date)
                 last_match_html = ""
-                # In the SELECTED match section (around line 110):
                 if week_number > 1:
                     home_rest = get_team_rest_days(home, selected_scenario.date)
                     away_rest = get_team_rest_days(away, selected_scenario.date)
@@ -2018,10 +2147,19 @@ def display_week_scenarios(week_number, matches_from_excel):
                         else:
                             last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: No previous match</div>"
                         
-                        last_match_html += "</div>"                
+                        last_match_html += "</div>"
+                
+                # REMOVED: Duplicate card_parts section that was incorrectly placed here
+                
+                # Display the selected match card
                 st.markdown(f"""
                 <div style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 10px 0;">
                     <div style="font-weight: bold; color: #155724; font-size: 18px;">✅ {home} vs {away} (SELECTED)</div>
+                    {prestige_html}
+                    <div style="margin-top: 8px;">
+                        {home_badge}
+                        {away_badge}
+                    </div>
                     <div style="color: #155724; margin-top: 5px;">
                         📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>
                         🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
@@ -2030,8 +2168,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     </div>
                     {last_match_html}
                 </div>
-                """, unsafe_allow_html=True)
-                
+                """, unsafe_allow_html=True)                
                 
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
@@ -2123,7 +2260,29 @@ def display_week_scenarios(week_number, matches_from_excel):
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(scenario, available_scenarios)
                 
-                # Get last match info for both teams (only show if week > 1)
+                # Get team rankings - ADDED THIS SECTION
+                home_badge = get_team_rank_badge(home)
+                away_badge = get_team_rank_badge(away)
+                prestige_level, prestige_desc, prestige_icon = get_match_prestige_level(home, away)
+                
+                # Create prestige badge if applicable - ADDED THIS SECTION
+                prestige_html = ""
+                if prestige_level != 'regular':
+                    prestige_colors = {
+                        'elite': {'bg': '#FFD700', 'text': '#000'},
+                        'high': {'bg': '#4CAF50', 'text': '#FFF'},
+                        'medium': {'bg': '#2196F3', 'text': '#FFF'}
+                    }
+                    color = prestige_colors[prestige_level]
+                    prestige_html = f"""
+                    <div style='background: {color['bg']}; color: {color['text']}; 
+                                display: inline-block; padding: 4px 10px; border-radius: 15px; 
+                                font-weight: bold; font-size: 0.8em; margin: 4px 0;'>
+                        {prestige_icon} {prestige_desc}
+                    </div>
+                    """
+                
+                # Get rest days for both teams
                 last_match_html = ""
                 if week_number > 1:
                     home_rest = get_team_rest_days(home, scenario.date)
@@ -2164,6 +2323,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                 card_parts = []
                 card_parts.append(f'<div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">')
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
+                card_parts.append(prestige_html)  # ADDED prestige badge
+                card_parts.append(f'<div style="margin-top: 5px;">{home_badge}{away_badge}</div>')  # ADDED team badges
                 card_parts.append(f'<div>🏟️ {scenario.stadium} ({scenario.city})</div>')
                 card_parts.append(f'<div style="margin-top: 5px;">{time_context}</div>')
                 card_parts.append(f'<div>👥 Attendance: {scenario.attendance_percentage}%</div>')
@@ -2309,7 +2470,7 @@ def display_week_scenarios(week_number, matches_from_excel):
 
     if selected_count == len(pairings):
         st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-
+        
 def get_teams_for_match(match_id):
     """
     Helper function to get team names for a given match_id.
@@ -3827,6 +3988,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
