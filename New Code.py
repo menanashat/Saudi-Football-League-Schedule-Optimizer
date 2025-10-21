@@ -243,7 +243,7 @@ def is_team_available(team, match_date):
     'Al-Fateh': [
         datetime.date(2025, 10, 27)
     ],
-    'Al-Khulood': [
+    'Al-Okhdood': [
         datetime.date(2025, 10, 27)
     ],
     'Al-Batin': [
@@ -1815,7 +1815,6 @@ def get_team_rank_badge(team):
                 border-radius: 8px; padding: 4px 10px; margin: 5px 0; font-size: 0.85em;'>
         <span style='font-size: 1.2em;'>{style['icon']}</span>
         <span style='color: {style['color']}; font-weight: bold; margin-left: 4px;'>#{rank} {style['text']}</span>
-        <span style='color: #666; font-size: 0.9em; margin-left: 6px;'>(Avg: {avg})</span>
     </div>
     """
     
@@ -1926,7 +1925,7 @@ def get_team_rest_days(team, match_date):
     'Al-Fateh': [
         datetime.date(2025, 10, 27)
     ],
-    'Al-Khulood': [
+    'Al-Okhdood': [
         datetime.date(2025, 10, 27)
     ],
     'Al-Batin': [
@@ -3988,6 +3987,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
