@@ -1763,7 +1763,7 @@ def get_team_ranking():
             'Al-Fayha': 9, 'Damac': 10
         },
         2024: {
-            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadsiah': 4,
+            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadisiyah': 4,
             'Al-Ahli': 5, 'Al-Shabab': 6, 'Al-Ettifaq': 7, 'Al-Taawoun': 8,
             'Al-Kholood': 9, 'Al-Fateh': 10
         }
@@ -4028,6 +4028,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
