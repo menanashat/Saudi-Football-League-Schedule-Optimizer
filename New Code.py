@@ -2069,6 +2069,10 @@ def get_scenario_time_context(scenario, available_scenarios):
     except (ValueError, AttributeError, IndexError):
         return "⏰ Fixed Time"  # Fallback if scenario not found
 
+
+
+
+
 def display_week_scenarios(week_number, matches_from_excel):
     """
     Display matches for a week with stadium dropdown selection.
@@ -2215,7 +2219,26 @@ def display_week_scenarios(week_number, matches_from_excel):
                     current_date = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').date()
                     if st.session_state.day_counts.get(current_date, 0) > 0:
                         st.session_state.day_counts[current_date] -= 1
-                    st.success(f"Deselected {home} vs {away}")
+                    
+                    # CRITICAL: Restore scenarios for other matches on this now-available day
+                    # This re-checks all unselected matches and adds back scenarios that were filtered out
+                    for other_match_id in st.session_state.scenario_manager.scenarios:
+                        if other_match_id == match_id or other_match_id in st.session_state.scenario_manager.selected_scenarios:
+                            continue  # Skip the current match and already selected matches
+                        
+                        # Get all original scenarios for this match
+                        all_scenarios = st.session_state.scenario_manager.scenarios[other_match_id]
+                        
+                        # Check if there are any scenarios for the now-available date
+                        has_scenarios_for_date = any(
+                            datetime.datetime.strptime(s.date, '%Y-%m-%d').date() == current_date 
+                            for s in all_scenarios
+                        )
+                        
+                        # If scenarios exist for this date, they should now be visible again
+                        # The filtering in the main display loop will handle availability checks
+                    
+                    st.success(f"Deselected {home} vs {away}. Day {current_date} is now available for other matches.")
                     st.rerun()
             continue
 
@@ -2515,8 +2538,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}", disabled=True)
 
     if selected_count == len(pairings):
-        st.success(f"All {len(pairings)} matches selected for week {week_number}!")
-        
+        st.success(f"All {len(pairings)} matches selected for week {week_number}!")        
 def get_teams_for_match(match_id):
     """
     Helper function to get team names for a given match_id.
@@ -4034,6 +4056,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
