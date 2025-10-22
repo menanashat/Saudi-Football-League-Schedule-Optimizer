@@ -1836,15 +1836,26 @@ def get_team_rank_badge(team):
     
     style = badge_styles[rank]
     
-    badge_html = f"""
-    <div style='display: inline-block; background: {style['bg']}; border: 2px solid {style['border']}; 
-                border-radius: 8px; padding: 4px 10px; margin: 5px 0; font-size: 0.85em;'>
-        <span style='font-size: 1.2em;'>{style['icon']}</span>
-        <span style='color: {style['color']}; font-weight: bold; margin-left: 4px;'>#{rank} {style['text']}</span>
-    </div>
-    """
+    # Build badge HTML using consistent double quotes
+    badge_parts = []
+    badge_parts.append('<div style="display: inline-block; background: ')
+    badge_parts.append(style['bg'])
+    badge_parts.append('; border: 2px solid ')
+    badge_parts.append(style['border'])
+    badge_parts.append('; border-radius: 8px; padding: 4px 10px; margin: 5px 0; font-size: 0.85em;">')
+    badge_parts.append('<span style="font-size: 1.2em;">')
+    badge_parts.append(style['icon'])
+    badge_parts.append('</span>')
+    badge_parts.append('<span style="color: ')
+    badge_parts.append(style['color'])
+    badge_parts.append('; font-weight: bold; margin-left: 4px;">#')
+    badge_parts.append(str(rank))
+    badge_parts.append(' ')
+    badge_parts.append(style['text'])
+    badge_parts.append('</span>')
+    badge_parts.append('</div>')
     
-    return badge_html
+    return ''.join(badge_parts)
 
 def get_match_prestige_level(home_team, away_team):
     """
@@ -4023,6 +4034,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
