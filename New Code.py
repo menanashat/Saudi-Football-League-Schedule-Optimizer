@@ -2291,8 +2291,8 @@ def display_week_scenarios(week_number, matches_from_excel):
             
             s.is_available = is_available
             s.conflict_reason = conflict_reason
-            if is_available or st.session_state.day_counts.get(scenario_date, 0) < 3:
-                available_scenarios.append(s)
+            
+            available_scenarios.append(s)
 
         # Sort scenarios by date and time
         available_scenarios.sort(key=lambda s: (
@@ -4065,6 +4065,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
