@@ -2222,9 +2222,11 @@ def display_week_scenarios(week_number, matches_from_excel):
                     if st.session_state.day_counts.get(current_date, 0) > 0:
                         st.session_state.day_counts[current_date] -= 1
                     
-                    # CRITICAL FIX: Force regeneration of scenarios by clearing the temporary filters
-                    # This ensures that all scenarios for unselected matches are recalculated
-                    # with the newly available date/time slots
+                    # Remove the deselected match from schedule_df if it exists
+                    if 'schedule_df' in st.session_state and 'match_id' in st.session_state.schedule_df.columns:
+                        st.session_state.schedule_df = st.session_state.schedule_df[
+                            st.session_state.schedule_df['match_id'] != match_id
+                        ]
                     
                     st.success(f"Deselected {home} vs {away}. Day {current_date} is now available for other matches.")
                     st.rerun()
@@ -4065,6 +4067,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
