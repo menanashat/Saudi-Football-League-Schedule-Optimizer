@@ -1789,7 +1789,7 @@ def get_team_ranking():
 
 def get_team_rank_badge(team):
     """
-    Get a visual badge for team ranking if team is in top 3.
+    Get a visual badge for team ranking if team is in top 10.
     Returns HTML string with badge or empty string.
     """
     rankings = get_team_ranking()
@@ -1801,12 +1801,23 @@ def get_team_rank_badge(team):
     rank = rank_info['rank']
     avg = rank_info['average']
     
-    # Define badge styles
+    # Define badge styles for top 10
     badge_styles = {
         1: {'icon': '🥇', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': 'CHAMPION'},
         2: {'icon': '🥈', 'color': '#C0C0C0', 'bg': '#F5F5F5', 'border': '#C0C0C0', 'text': 'ELITE'},
-        3: {'icon': '🥉', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'TOP 3'}
+        3: {'icon': '🥉', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'TOP 3'},
+        4: {'icon': '⭐', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': 'TOP 5'},
+        5: {'icon': '⭐', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': 'TOP 5'},
+        6: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
+        7: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
+        8: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
+        9: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
+        10: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'}
     }
+    
+    # Only show badge for top 10 teams
+    if rank not in badge_styles:
+        return ""
     
     style = badge_styles[rank]
     
@@ -1819,7 +1830,6 @@ def get_team_rank_badge(team):
     """
     
     return badge_html
-
 
 def get_match_prestige_level(home_team, away_team):
     """
@@ -4003,6 +4013,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
