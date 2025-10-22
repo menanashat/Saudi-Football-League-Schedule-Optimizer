@@ -2182,9 +2182,8 @@ def display_week_scenarios(week_number, matches_from_excel):
                         {last_match_html}
                     </div>
                     """,
-                    unsafe_allow_html=True,
-                )
-             
+                    unsafe_allow_html=True
+                )             
                 
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
@@ -4004,6 +4003,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
