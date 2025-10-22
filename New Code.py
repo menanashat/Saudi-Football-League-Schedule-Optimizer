@@ -2135,80 +2135,69 @@ def display_week_scenarios(week_number, matches_from_excel):
                         'medium': {'bg': '#2196F3', 'text': '#FFF'}
                     }
                     color = prestige_colors[prestige_level]
-                    prestige_html = f"""
-                    <div style='background: {color['bg']}; color: {color['text']}; 
-                                display: inline-block; padding: 5px 12px; border-radius: 20px; 
-                                font-weight: bold; font-size: 0.9em; margin: 5px 0;'>
-                        {prestige_icon} {prestige_desc}
-                    </div>
-                    """
+                    prestige_html = f"""<div style='background: {color['bg']}; color: {color['text']}; display: inline-block; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; margin: 5px 0;'>{prestige_icon} {prestige_desc}</div>"""
                 
-                # Get rest days (FIXED: use selected_scenario.date instead of scenario.date)
+                # Get rest days
                 last_match_html = ""
                 if week_number > 1:
                     home_rest = get_team_rest_days(home, selected_scenario.date)
                     away_rest = get_team_rest_days(away, selected_scenario.date)
                     
                     if home_rest[0] is not None or away_rest[0] is not None:
-                        last_match_html = "<div style='margin-top: 8px; padding: 8px; background-color: #f0f8ff; border-radius: 5px;'>"
-                        last_match_html += "<div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match & Rest Days:</div>"
+                        last_match_parts = []
+                        last_match_parts.append("<div style='margin-top: 8px; padding: 8px; background-color: #f0f8ff; border-radius: 5px;'>")
+                        last_match_parts.append("<div style='font-weight: bold; color: #155724; margin-bottom: 5px;'>📋 Last Match & Rest Days:</div>")
                         
                         if home_rest[0] is not None:
                             rest_days, last_date, match_type = home_rest
                             match_icon = "🏆" if match_type == 'league' else "✈️"
                             match_label = "League" if match_type == 'league' else "External"
                             rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
-                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: {match_icon} {match_label} match on {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days} days rest</span></div>"
+                            last_match_parts.append(f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: {match_icon} {match_label} match on {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days} days rest</span></div>")
                         else:
-                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: No previous match</div>"
+                            last_match_parts.append(f"<div style='font-size: 0.9em; color: #155724;'><b>{home}</b>: No previous match</div>")
                         
                         if away_rest[0] is not None:
                             rest_days, last_date, match_type = away_rest
                             match_icon = "🏆" if match_type == 'league' else "✈️"
                             match_label = "League" if match_type == 'league' else "External"
                             rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
-                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: {match_icon} {match_label} match on {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days} days rest</span></div>"
+                            last_match_parts.append(f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: {match_icon} {match_label} match on {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days} days rest</span></div>")
                         else:
-                            last_match_html += f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: No previous match</div>"
+                            last_match_parts.append(f"<div style='font-size: 0.9em; color: #155724;'><b>{away}</b>: No previous match</div>")
                         
-                        last_match_html += "</div>"
+                        last_match_parts.append("</div>")
+                        last_match_html = ''.join(last_match_parts)
                 
-                # REMOVED: Duplicate card_parts section that was incorrectly placed here
+                # Build selected card HTML properly
+                selected_card_parts = []
+                selected_card_parts.append('<div style="background-color:#d4edda; border:2px solid #28a745; border-radius:10px; padding:15px; margin:10px 0;">')
+                selected_card_parts.append(f'<div style="font-weight:bold; color:#155724; font-size:18px;">✅ {home} vs {away} (SELECTED)</div>')
+                
+                if prestige_html:
+                    selected_card_parts.append(prestige_html)
+                
+                selected_card_parts.append('<div style="margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap: wrap;">')
+                if home_badge:
+                    selected_card_parts.append(home_badge)
+                if away_badge:
+                    selected_card_parts.append(away_badge)
+                selected_card_parts.append('</div>')
+                
+                selected_card_parts.append(f'<div style="color:#155724; margin-top:5px; line-height:1.5;">')
+                selected_card_parts.append(f'📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>')
+                selected_card_parts.append(f'🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>')
+                selected_card_parts.append(f'{time_context}<br>')
+                selected_card_parts.append(f'👥 Attendance: {selected_scenario.attendance_percentage}%')
+                selected_card_parts.append('</div>')
+                
+                if last_match_html:
+                    selected_card_parts.append(last_match_html)
+                
+                selected_card_parts.append('</div>')
                 
                 # Display the selected match card
-                st.markdown(
-                    f"""
-                    <div style="background-color:#d4edda;
-                                border:2px solid #28a745;
-                                border-radius:10px;
-                                padding:15px;
-                                margin:10px 0;">
-                        <div style="font-weight:bold;
-                                    color:#155724;
-                                    font-size:18px;">
-                            ✅ {home} vs {away} (SELECTED)
-                        </div>
-                        {prestige_html}
-                        <div style="margin-top:8px;
-                                    display:flex;
-                                    align-items:center;
-                                    gap:10px;">
-                            {home_badge}
-                            {away_badge}
-                        </div>
-                        <div style="color:#155724;
-                                    margin-top:5px;
-                                    line-height:1.5;">
-                            📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>
-                            🏟️ {selected_scenario.stadium} ({selected_scenario.city})<br>
-                            {time_context}<br>
-                            👥 Attendance: {selected_scenario.attendance_percentage}%
-                        </div>
-                        {last_match_html}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )             
+                st.markdown(''.join(selected_card_parts), unsafe_allow_html=True)
                 
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
@@ -2300,12 +2289,12 @@ def display_week_scenarios(week_number, matches_from_excel):
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(scenario, available_scenarios)
                 
-                # Get team rankings - ADDED THIS SECTION
+                # Get team rankings
                 home_badge = get_team_rank_badge(home)
                 away_badge = get_team_rank_badge(away)
                 prestige_level, prestige_desc, prestige_icon = get_match_prestige_level(home, away)
                 
-                # Create prestige badge if applicable - ADDED THIS SECTION
+                # Create prestige badge if applicable
                 prestige_html = ""
                 if prestige_level != 'regular':
                     prestige_colors = {
@@ -2314,13 +2303,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                         'medium': {'bg': '#2196F3', 'text': '#FFF'}
                     }
                     color = prestige_colors[prestige_level]
-                    prestige_html = f"""
-                    <div style='background: {color['bg']}; color: {color['text']}; 
-                                display: inline-block; padding: 4px 10px; border-radius: 15px; 
-                                font-weight: bold; font-size: 0.8em; margin: 4px 0;'>
-                        {prestige_icon} {prestige_desc}
-                    </div>
-                    """
+                    prestige_html = f"""<div style='background: {color['bg']}; color: {color['text']}; display: inline-block; padding: 4px 10px; border-radius: 15px; font-weight: bold; font-size: 0.8em; margin: 4px 0;'>{prestige_icon} {prestige_desc}</div>"""
                 
                 # Get rest days for both teams
                 last_match_html = ""
@@ -2329,26 +2312,28 @@ def display_week_scenarios(week_number, matches_from_excel):
                     away_rest = get_team_rest_days(away, scenario.date)
                     
                     if home_rest[0] is not None or away_rest[0] is not None:
-                        last_match_html = "<div style='margin-top: 8px; padding: 6px; background-color: rgba(255,255,255,0.6); border-radius: 5px; font-size: 0.85em;'>"
-                        last_match_html += "<div style='font-weight: bold; margin-bottom: 3px;'>📋 Rest Days:</div>"
+                        last_match_parts = []
+                        last_match_parts.append("<div style='margin-top: 8px; padding: 6px; background-color: rgba(255,255,255,0.6); border-radius: 5px; font-size: 0.85em;'>")
+                        last_match_parts.append("<div style='font-weight: bold; margin-bottom: 3px;'>📋 Rest Days:</div>")
                         
                         if home_rest[0] is not None:
                             rest_days, last_date, match_type = home_rest
                             match_icon = "🏆" if match_type == 'league' else "✈️"
                             rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
-                            last_match_html += f"<div><b>{home}</b>: {match_icon} {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days}d</span></div>"
+                            last_match_parts.append(f"<div><b>{home}</b>: {match_icon} {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days}d</span></div>")
                         else:
-                            last_match_html += f"<div><b>{home}</b>: No previous match</div>"
+                            last_match_parts.append(f"<div><b>{home}</b>: No previous match</div>")
                         
                         if away_rest[0] is not None:
                             rest_days, last_date, match_type = away_rest
                             match_icon = "🏆" if match_type == 'league' else "✈️"
                             rest_color = "#28a745" if rest_days >= 3 else "#ffc107" if rest_days >= 2 else "#dc3545"
-                            last_match_html += f"<div><b>{away}</b>: {match_icon} {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days}d</span></div>"
+                            last_match_parts.append(f"<div><b>{away}</b>: {match_icon} {last_date.strftime('%Y-%m-%d')} | <span style='color: {rest_color}; font-weight: bold;'>⏱️ {rest_days}d</span></div>")
                         else:
-                            last_match_html += f"<div><b>{away}</b>: No previous match</div>"
+                            last_match_parts.append(f"<div><b>{away}</b>: No previous match</div>")
                         
-                        last_match_html += "</div>"
+                        last_match_parts.append("</div>")
+                        last_match_html = ''.join(last_match_parts)
                 
                 # Build the availability section HTML
                 availability_section = ""
@@ -2363,8 +2348,18 @@ def display_week_scenarios(week_number, matches_from_excel):
                 card_parts = []
                 card_parts.append(f'<div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">')
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
-                card_parts.append(prestige_html)  # ADDED prestige badge
-                card_parts.append(f'<div style="margin-top: 5px;">{home_badge}{away_badge}</div>')  # ADDED team badges
+                
+                if prestige_html:
+                    card_parts.append(prestige_html)
+                
+                # Add team badges on same line with flexbox
+                card_parts.append('<div style="margin-top: 5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">')
+                if home_badge:
+                    card_parts.append(home_badge)
+                if away_badge:
+                    card_parts.append(away_badge)
+                card_parts.append('</div>')
+                
                 card_parts.append(f'<div>🏟️ {scenario.stadium} ({scenario.city})</div>')
                 card_parts.append(f'<div style="margin-top: 5px;">{time_context}</div>')
                 card_parts.append(f'<div>👥 Attendance: {scenario.attendance_percentage}%</div>')
@@ -4028,6 +4023,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
