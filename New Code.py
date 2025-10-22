@@ -1740,18 +1740,33 @@ def get_last_match_info(team, current_week, current_date):
 
 
 
-
 def get_team_ranking():
     """
     Calculate team rankings based on last 4 years' performance (2021-2024).
     Returns dictionary with team rankings and average positions.
     """
-    # Historical rankings data
+    # Historical rankings data (Top 10 for each year)
     historical_rankings = {
-        2021: {'Al-Hilal': 1, 'Al-Ittihad': 2, 'Al-Nassr': 3},
-        2022: {'Al-Ittihad': 1, 'Al-Nassr': 2, 'Al-Hilal': 3},
-        2023: {'Al-Hilal': 1, 'Al-Nassr': 2, 'Al-Ahli': 3},
-        2024: {'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3}
+        2021: {
+            'Al-Hilal': 1, 'Al-Ittihad': 2, 'Al-Nassr': 3, 'Al-Shabab': 4,
+            'Damac': 5, 'Al-Tai': 6, 'Al-Raed': 7, 'Al-Fateh': 8,
+            'Al-Fayha': 9, 'Abha': 10
+        },
+        2022: {
+            'Al-Ittihad': 1, 'Al-Nassr': 2, 'Al-Hilal': 3, 'Al-Shabab': 4,
+            'Al-Taawoun': 5, 'Al-Fateh': 6, 'Al-Ettifaq': 7, 'Damac': 8,
+            'Al-Raed': 9, 'Al-Tai': 10
+        },
+        2023: {
+            'Al-Hilal': 1, 'Al-Nassr': 2, 'Al-Ahli': 3, 'Al-Taawoun': 4,
+            'Al-Ittihad': 5, 'Al-Ettifaq': 6, 'Al-Fateh': 7, 'Al-Shabab': 8,
+            'Al-Fayha': 9, 'Damac': 10
+        },
+        2024: {
+            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadsiah': 4,
+            'Al-Ahli': 5, 'Al-Shabab': 6, 'Al-Ettifaq': 7, 'Al-Taawoun': 8,
+            'Al-Kholood': 9, 'Al-Fateh': 10
+        }
     }
     
     # Calculate average rankings
@@ -1775,9 +1790,9 @@ def get_team_ranking():
     # Sort by average (lower is better)
     sorted_teams = sorted(team_averages.items(), key=lambda x: x[1])
     
-    # Assign current rankings (1-3 for top 3 teams)
+    # Assign current rankings for top 10 teams
     current_rankings = {}
-    for i, (team, avg) in enumerate(sorted_teams[:3], 1):
+    for i, (team, avg) in enumerate(sorted_teams[:10], 1):  # ✅ Changed to top 10
         current_rankings[team] = {
             'rank': i,
             'average': round(avg, 2),
@@ -4013,6 +4028,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
