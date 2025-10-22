@@ -2215,6 +2215,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 st.markdown(''.join(selected_card_parts), unsafe_allow_html=True)
                 
                 if st.button(f"Deselect Match", key=f"deselect_{match_id}_{week_number}"):
+                    # Remove from selected scenarios
                     del st.session_state.scenario_manager.selected_scenarios[match_id]
                     current_date = datetime.datetime.strptime(selected_scenario.date, '%Y-%m-%d').date()
                     
@@ -2231,26 +2232,6 @@ def display_week_scenarios(week_number, matches_from_excel):
                     st.success(f"Deselected {home} vs {away}. Day {current_date} is now available for other matches.")
                     st.rerun()
                     
-                    # CRITICAL: Restore scenarios for other matches on this now-available day
-                    # This re-checks all unselected matches and adds back scenarios that were filtered out
-                    for other_match_id in st.session_state.scenario_manager.scenarios:
-                        if other_match_id == match_id or other_match_id in st.session_state.scenario_manager.selected_scenarios:
-                            continue  # Skip the current match and already selected matches
-                        
-                        # Get all original scenarios for this match
-                        all_scenarios = st.session_state.scenario_manager.scenarios[other_match_id]
-                        
-                        # Check if there are any scenarios for the now-available date
-                        has_scenarios_for_date = any(
-                            datetime.datetime.strptime(s.date, '%Y-%m-%d').date() == current_date 
-                            for s in all_scenarios
-                        )
-                        
-                        # If scenarios exist for this date, they should now be visible again
-                        # The filtering in the main display loop will handle availability checks
-                    
-                    st.success(f"Deselected {home} vs {away}. Day {current_date} is now available for other matches.")
-                    st.rerun()
             continue
 
         scenarios = st.session_state.scenario_manager.get_scenarios_for_match(match_id)
@@ -2534,22 +2515,16 @@ def display_week_scenarios(week_number, matches_from_excel):
                             
                             st.success(f"Selected {scenario.date} {scenario.time} for {home} vs {away}.")
                             
-                            # IMPORTANT: Do NOT remove scenarios from other matches based on stadium conflicts
-                            # Only remove scenarios if the DAY is completely full (3 matches)
-                            if st.session_state.day_counts[current_date] >= 3:
-                                for m_id in st.session_state.scenario_manager.scenarios:
-                                    if m_id not in st.session_state.scenario_manager.selected_scenarios:
-                                        st.session_state.scenario_manager.scenarios[m_id] = [
-                                            s for s in st.session_state.scenario_manager.scenarios[m_id]
-                                            if datetime.datetime.strptime(s.date, '%Y-%m-%d').date() != current_date
-                                        ]
+                            # DO NOT permanently remove scenarios from scenario_manager
+                            # The display logic will filter them based on availability
                             
                             st.rerun()
                 else:
                     st.button(f"Select", key=f"select_{scenario.scenario_id}_{week_number}_{match_id}", disabled=True)
 
     if selected_count == len(pairings):
-        st.success(f"All {len(pairings)} matches selected for week {week_number}!")        
+        st.success(f"All {len(pairings)} matches selected for week {week_number}!")
+        
 def get_teams_for_match(match_id):
     """
     Helper function to get team names for a given match_id.
@@ -4067,6 +4042,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
