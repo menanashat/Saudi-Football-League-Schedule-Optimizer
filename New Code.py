@@ -1899,9 +1899,9 @@ def get_team_rank_badge(team):
     elif rank == 3:
         style = {'icon': '🥉', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'BRONZE'}
     elif rank <= 5:
-        style = {'icon': '🏆', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': 'TOP 5'}
+        style = {'icon': '🏆', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': ''}
     elif rank <= 10:
-        style = {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'}
+        style = {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': ''}
     elif rank <= 14:
         style = {'icon': '🔹', 'color': '#78909C', 'bg': '#ECEFF1', 'border': '#78909C', 'text': 'MID TABLE'}
     else:
@@ -1921,12 +1921,7 @@ def get_team_rank_badge(team):
     badge_parts.append(style['color'])
     badge_parts.append('; font-weight: bold; margin-left: 4px;">#')
     badge_parts.append(str(rank))
-    badge_parts.append(' ')
-    badge_parts.append(style['text'])
-    badge_parts.append('</span>')
-    badge_parts.append('<span style="color: #666; font-size: 0.9em; margin-left: 6px;">(Avg: ')
-    badge_parts.append(str(avg))
-    badge_parts.append(')</span>')
+
     badge_parts.append('</div>')
     
     return ''.join(badge_parts)
