@@ -1739,33 +1739,38 @@ def get_last_match_info(team, current_week, current_date):
     }
 
 
-
 def get_team_ranking():
     """
     Calculate team rankings based on last 4 years' performance (2021-2024).
     Returns dictionary with team rankings and average positions.
     """
-    # Historical rankings data (Top 10 for each year)
+    # Historical rankings data (complete standings)
     historical_rankings = {
         2021: {
             'Al-Hilal': 1, 'Al-Ittihad': 2, 'Al-Nassr': 3, 'Al-Shabab': 4,
             'Damac': 5, 'Al-Tai': 6, 'Al-Raed': 7, 'Al-Fateh': 8,
-            'Al-Fayha': 9, 'Abha': 10
+            'Al-Fayha': 9, 'Abha': 10, 'Al-Taawoun': 11, 'Al-Ettifaq': 12,
+            'Al-Faisaly': 13, 'Al-Batin': 14, 'Al-Ahli': 15, 'Al-Hazem': 16
         },
         2022: {
             'Al-Ittihad': 1, 'Al-Nassr': 2, 'Al-Hilal': 3, 'Al-Shabab': 4,
             'Al-Taawoun': 5, 'Al-Fateh': 6, 'Al-Ettifaq': 7, 'Damac': 8,
-            'Al-Raed': 9, 'Al-Tai': 10
+            'Al-Raed': 9, 'Al-Tai': 10, 'Al-Fayha': 11, 'Abha': 12,
+            'Al-Wehda': 13, 'Al-Khaleej': 14, 'Al-Adalah': 15, 'Al-Batin': 16
         },
         2023: {
             'Al-Hilal': 1, 'Al-Nassr': 2, 'Al-Ahli': 3, 'Al-Taawoun': 4,
             'Al-Ittihad': 5, 'Al-Ettifaq': 6, 'Al-Fateh': 7, 'Al-Shabab': 8,
-            'Al-Fayha': 9, 'Damac': 10
+            'Al-Fayha': 9, 'Damac': 10, 'Al-Raed': 11, 'Al-Khaleej': 12,
+            'Al-Wehda': 13, 'Al-Riyadh': 14, 'Al-Okhdood': 15, 'Abha': 16,
+            'Al-Tai': 17, 'Al-Hazem': 18
         },
         2024: {
-            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadisiyah': 4,
+            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadsiah': 4,
             'Al-Ahli': 5, 'Al-Shabab': 6, 'Al-Ettifaq': 7, 'Al-Taawoun': 8,
-            'Al-Kholood': 9, 'Al-Fateh': 10
+            'Al-Kholood': 9, 'Al-Fateh': 10, 'Al-Riyadh': 11, 'Al-Khaleej': 12,
+            'Al-Fayha': 13, 'Damac': 14, 'Al-Okhdood': 15, 'Al-Wehda': 16,
+            'Al-Orobah': 17, 'Al-Raed': 18
         }
     }
     
@@ -1790,9 +1795,9 @@ def get_team_ranking():
     # Sort by average (lower is better)
     sorted_teams = sorted(team_averages.items(), key=lambda x: x[1])
     
-    # Assign current rankings for top 10 teams
+    # Assign current rankings to all teams
     current_rankings = {}
-    for i, (team, avg) in enumerate(sorted_teams[:10], 1):  # ✅ Changed to top 10
+    for i, (team, avg) in enumerate(sorted_teams, 1):
         current_rankings[team] = {
             'rank': i,
             'average': round(avg, 2),
@@ -1804,7 +1809,7 @@ def get_team_ranking():
 
 def get_team_rank_badge(team):
     """
-    Get a visual badge for team ranking if team is in top 10.
+    Get a visual badge for team ranking.
     Returns HTML string with badge or empty string.
     """
     rankings = get_team_ranking()
@@ -1816,25 +1821,21 @@ def get_team_rank_badge(team):
     rank = rank_info['rank']
     avg = rank_info['average']
     
-    # Define badge styles for top 10
-    badge_styles = {
-        1: {'icon': '🥇', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': 'CHAMPION'},
-        2: {'icon': '🥈', 'color': '#C0C0C0', 'bg': '#F5F5F5', 'border': '#C0C0C0', 'text': 'ELITE'},
-        3: {'icon': '🥉', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'TOP 3'},
-        4: {'icon': '⭐', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': 'TOP 5'},
-        5: {'icon': '⭐', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': 'TOP 5'},
-        6: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
-        7: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
-        8: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
-        9: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'},
-        10: {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'}
-    }
-    
-    # Only show badge for top 10 teams
-    if rank not in badge_styles:
-        return ""
-    
-    style = badge_styles[rank]
+    # Define badge styles based on ranking tiers
+    if rank == 1:
+        style = {'icon': '🥇', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': 'CHAMPION'}
+    elif rank == 2:
+        style = {'icon': '🥈', 'color': '#C0C0C0', 'bg': '#F5F5F5', 'border': '#C0C0C0', 'text': 'RUNNER-UP'}
+    elif rank == 3:
+        style = {'icon': '🥉', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'BRONZE'}
+    elif rank <= 5:
+        style = {'icon': '🏆', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': 'TOP 5'}
+    elif rank <= 10:
+        style = {'icon': '🔷', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': 'TOP 10'}
+    elif rank <= 14:
+        style = {'icon': '🔹', 'color': '#78909C', 'bg': '#ECEFF1', 'border': '#78909C', 'text': 'MID TABLE'}
+    else:
+        style = {'icon': '⚪', 'color': '#9E9E9E', 'bg': '#FAFAFA', 'border': '#BDBDBD', 'text': 'LOWER TABLE'}
     
     # Build badge HTML using consistent double quotes
     badge_parts = []
@@ -1853,9 +1854,13 @@ def get_team_rank_badge(team):
     badge_parts.append(' ')
     badge_parts.append(style['text'])
     badge_parts.append('</span>')
+    badge_parts.append('<span style="color: #666; font-size: 0.9em; margin-left: 6px;">(Avg: ')
+    badge_parts.append(str(avg))
+    badge_parts.append(')</span>')
     badge_parts.append('</div>')
     
     return ''.join(badge_parts)
+
 
 def get_match_prestige_level(home_team, away_team):
     """
@@ -1864,20 +1869,26 @@ def get_match_prestige_level(home_team, away_team):
     """
     rankings = get_team_ranking()
     
-    home_in_top3 = home_team in rankings
-    away_in_top3 = away_team in rankings
+    home_rank = rankings.get(home_team, {}).get('rank', 999)
+    away_rank = rankings.get(away_team, {}).get('rank', 999)
     
-    if home_in_top3 and away_in_top3:
-        home_rank = rankings[home_team]['rank']
-        away_rank = rankings[away_team]['rank']
-        
-        # Classic rivalry (both in top 3)
-        if home_rank == 1 or away_rank == 1:
-            return ('elite', 'ELITE CLASH', '⭐⭐⭐')
+    # Both teams exist in rankings
+    if home_rank < 999 and away_rank < 999:
+        # Top 3 derby (both in top 3)
+        if home_rank <= 3 and away_rank <= 3:
+            return ('elite', 'ELITE CLASH', '👑')
+        # One top 3 team involved
+        elif home_rank <= 3 or away_rank <= 3:
+            return ('high', 'TOP TIER MATCH', '🏆')
+        # Both in top 10
+        elif home_rank <= 10 and away_rank <= 10:
+            return ('medium-high', 'PREMIUM MATCH', '💎')
+        # At least one in top 10
+        elif home_rank <= 10 or away_rank <= 10:
+            return ('medium', 'FEATURED MATCH', '🎯')
+        # Mid-table clash
         else:
-            return ('high', 'TOP TIER MATCH', '⭐⭐')
-    elif home_in_top3 or away_in_top3:
-        return ('medium', 'FEATURED MATCH', '⭐')
+            return ('regular', 'STANDARD MATCH', '⚽')
     else:
         return ('regular', '', '')
 
@@ -4042,6 +4053,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
