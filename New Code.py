@@ -1744,6 +1744,7 @@ def get_last_match_info(team, current_week, current_date):
 def get_team_ranking():
     """
     Calculate team rankings based on last 4 years' performance (2021-2024).
+    Teams without historical data are ranked last.
     Returns dictionary with team rankings and average positions.
     """
     # Historical rankings data (complete standings)
@@ -1768,7 +1769,7 @@ def get_team_ranking():
             'Al-Tai': 17, 'Al-Hazem': 18
         },
         2024: {
-            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadsiah': 4,
+            'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadisiyah': 4,
             'Al-Ahli': 5, 'Al-Shabab': 6, 'Al-Ettifaq': 7, 'Al-Taawoun': 8,
             'Al-Kholood': 9, 'Al-Fateh': 10, 'Al-Riyadh': 11, 'Al-Khaleej': 12,
             'Al-Fayha': 13, 'Damac': 14, 'Al-Okhdood': 15, 'Al-Wehda': 16,
@@ -1776,7 +1777,7 @@ def get_team_ranking():
         }
     }
     
-    # Calculate average rankings
+    # Calculate average rankings for teams with historical data
     team_totals = {}
     team_counts = {}
     
@@ -1794,19 +1795,21 @@ def get_team_ranking():
         for team in team_totals
     }
     
-    # Sort by average (lower is better)
+    # Sort teams with historical data by average (lower is better)
     sorted_teams = sorted(team_averages.items(), key=lambda x: x[1])
     
-    # Assign current rankings to all teams
+    # Assign current rankings to teams with historical data
     current_rankings = {}
     for i, (team, avg) in enumerate(sorted_teams, 1):
         current_rankings[team] = {
             'rank': i,
             'average': round(avg, 2),
-            'appearances': team_counts[team]
+            'appearances': team_counts[team],
+            'has_history': True
         }
     
     return current_rankings
+
 
 def get_all_teams_with_ranks():
     """
@@ -1816,10 +1819,12 @@ def get_all_teams_with_ranks():
     rankings = get_team_ranking()
     sorted_teams = sorted(rankings.items(), key=lambda x: x[1]['rank'])
     
-    print("=== ALL TEAM RANKINGS ===")
+    print("=== ALL TEAM RANKINGS (Historical Data) ===")
     for team, info in sorted_teams:
-        print(f"#{info['rank']:2d} - {team:20s} (Avg: {info['average']:.2f}, Appearances: {info['appearances']})")
-    print(f"\nTotal teams ranked: {len(rankings)}")
+        history_indicator = "✓" if info.get('has_history', False) else "✗"
+        print(f"{history_indicator} #{info['rank']:2d} - {team:20s} (Avg: {info['average']:.2f}, Appearances: {info['appearances']})")
+    print(f"\nTotal teams with historical data: {len(rankings)}")
+    print("\nNote: Teams without historical data (2021-2024) will show as 'NEW TEAM' in badges")
     return sorted_teams
 
 
@@ -1854,13 +1859,33 @@ def get_team_rank_badge(team):
     """
     Get a visual badge for team ranking.
     Returns HTML string with badge or empty string.
+    Teams without historical data get a "NEW TEAM" badge.
     """
     rankings = get_team_ranking()
     
+    # Check if team has historical ranking
     if team not in rankings:
-        # Debug: print warning for missing teams
-        print(f"WARNING: Team '{team}' not found in rankings")
-        return ""
+        # Team has no historical data - assign "NEW TEAM" badge
+        style = {'icon': '🆕', 'color': '#FF6B6B', 'bg': '#FFE5E5', 'border': '#FF6B6B', 'text': 'NEW TEAM'}
+        
+        badge_parts = []
+        badge_parts.append('<div style="display: inline-block; background: ')
+        badge_parts.append(style['bg'])
+        badge_parts.append('; border: 2px solid ')
+        badge_parts.append(style['border'])
+        badge_parts.append('; border-radius: 8px; padding: 4px 10px; margin: 5px 0; font-size: 0.85em;">')
+        badge_parts.append('<span style="font-size: 1.2em;">')
+        badge_parts.append(style['icon'])
+        badge_parts.append('</span>')
+        badge_parts.append('<span style="color: ')
+        badge_parts.append(style['color'])
+        badge_parts.append('; font-weight: bold; margin-left: 4px;">')
+        badge_parts.append(style['text'])
+        badge_parts.append('</span>')
+        badge_parts.append('<span style="color: #666; font-size: 0.9em; margin-left: 6px;">(No History)</span>')
+        badge_parts.append('</div>')
+        
+        return ''.join(badge_parts)
     
     rank_info = rankings[team]
     rank = rank_info['rank']
@@ -1880,7 +1905,6 @@ def get_team_rank_badge(team):
     elif rank <= 14:
         style = {'icon': '🔹', 'color': '#78909C', 'bg': '#ECEFF1', 'border': '#78909C', 'text': 'MID TABLE'}
     else:
-        # This will now catch ALL remaining teams (rank 15+)
         style = {'icon': '⚪', 'color': '#9E9E9E', 'bg': '#FAFAFA', 'border': '#BDBDBD', 'text': 'LOWER TABLE'}
     
     # Build badge HTML using consistent double quotes
@@ -1911,11 +1935,21 @@ def get_match_prestige_level(home_team, away_team):
     """
     Determine the prestige level of a match based on team rankings.
     Returns tuple: (prestige_level, description, icon)
+    Handles teams without historical data.
     """
     rankings = get_team_ranking()
     
+    # Get ranks, treating teams without history as unranked (999)
     home_rank = rankings.get(home_team, {}).get('rank', 999)
     away_rank = rankings.get(away_team, {}).get('rank', 999)
+    
+    # If either team is new/unranked, lower the prestige
+    if home_rank == 999 or away_rank == 999:
+        # If one team is ranked in top 5 and other is new
+        if (home_rank <= 5 and away_rank == 999) or (away_rank <= 5 and home_rank == 999):
+            return ('medium', 'FEATURED MATCH', '🎯')
+        else:
+            return ('regular', 'STANDARD MATCH', '⚽')
     
     # Both teams exist in rankings
     if home_rank < 999 and away_rank < 999:
