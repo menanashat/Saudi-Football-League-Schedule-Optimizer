@@ -1765,13 +1765,13 @@ def get_team_ranking():
             'Al-Hilal': 1, 'Al-Nassr': 2, 'Al-Ahli': 3, 'Al-Taawoun': 4,
             'Al-Ittihad': 5, 'Al-Ettifaq': 6, 'Al-Fateh': 7, 'Al-Shabab': 8,
             'Al-Fayha': 9, 'Damac': 10, 'Al-Raed': 11, 'Al-Khaleej': 12,
-            'Al-Wehda': 13, 'Al-Riyadh': 14, 'Al-Okhdood': 15, 'Abha': 16,
+            'Al-Wehda': 13, 'Al-riyadh': 14, 'Al-Okhdood': 15, 'Abha': 16,
             'Al-Tai': 17, 'Al-Hazem': 18
         },
         2024: {
             'Al-Ittihad': 1, 'Al-Hilal': 2, 'Al-Nassr': 3, 'Al-Qadisiyah': 4,
             'Al-Ahli': 5, 'Al-Shabab': 6, 'Al-Ettifaq': 7, 'Al-Taawoun': 8,
-            'Al-Kholood': 9, 'Al-Fateh': 10, 'Al-Riyadh': 11, 'Al-Khaleej': 12,
+            'Al-Kholood': 9, 'Al-Fateh': 10, 'Al-riyadh': 11, 'Al-Khaleej': 12,
             'Al-Fayha': 13, 'Damac': 14, 'Al-Okhdood': 15, 'Al-Wehda': 16,
             'Al-Orobah': 17, 'Al-Raed': 18
         }
