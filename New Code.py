@@ -1692,6 +1692,8 @@ def validate_and_redistribute_matches(matches_from_excel, week_start_dates, matc
         
         st.write(f"Redistributed week {week}: {[(h, a, d.strftime('%Y-%m-%d')) for h, a, d in redistributed[week]]}")
     return redistributed
+
+
 def get_last_match_info(team, current_week, current_date):
     """
     Get the last match played by a team before the current date.
@@ -1806,6 +1808,47 @@ def get_team_ranking():
     
     return current_rankings
 
+def get_all_teams_with_ranks():
+    """
+    Get a sorted list of all teams with their rankings.
+    Useful for debugging and verification.
+    """
+    rankings = get_team_ranking()
+    sorted_teams = sorted(rankings.items(), key=lambda x: x[1]['rank'])
+    
+    print("=== ALL TEAM RANKINGS ===")
+    for team, info in sorted_teams:
+        print(f"#{info['rank']:2d} - {team:20s} (Avg: {info['average']:.2f}, Appearances: {info['appearances']})")
+    print(f"\nTotal teams ranked: {len(rankings)}")
+    return sorted_teams
+
+
+
+def check_team_in_rankings(team_name):
+    """
+    Check if a specific team exists in rankings and show its details.
+    Helps identify spelling differences or missing teams.
+    """
+    rankings = get_team_ranking()
+    
+    if team_name in rankings:
+        info = rankings[team_name]
+        print(f"✓ {team_name} found!")
+        print(f"  Rank: #{info['rank']}")
+        print(f"  Average: {info['average']}")
+        print(f"  Appearances: {info['appearances']}")
+        return True
+    else:
+        print(f"✗ {team_name} NOT found in rankings")
+        print(f"\nDid you mean one of these?")
+        # Find similar team names
+        all_teams = sorted(rankings.keys())
+        for team in all_teams:
+            if team_name.lower() in team.lower() or team.lower() in team_name.lower():
+                print(f"  - {team}")
+        return False
+
+
 
 def get_team_rank_badge(team):
     """
@@ -1815,6 +1858,8 @@ def get_team_rank_badge(team):
     rankings = get_team_ranking()
     
     if team not in rankings:
+        # Debug: print warning for missing teams
+        print(f"WARNING: Team '{team}' not found in rankings")
         return ""
     
     rank_info = rankings[team]
@@ -1835,6 +1880,7 @@ def get_team_rank_badge(team):
     elif rank <= 14:
         style = {'icon': '🔹', 'color': '#78909C', 'bg': '#ECEFF1', 'border': '#78909C', 'text': 'MID TABLE'}
     else:
+        # This will now catch ALL remaining teams (rank 15+)
         style = {'icon': '⚪', 'color': '#9E9E9E', 'bg': '#FAFAFA', 'border': '#BDBDBD', 'text': 'LOWER TABLE'}
     
     # Build badge HTML using consistent double quotes
@@ -1860,7 +1906,6 @@ def get_team_rank_badge(team):
     badge_parts.append('</div>')
     
     return ''.join(badge_parts)
-
 
 def get_match_prestige_level(home_team, away_team):
     """
@@ -4053,7 +4098,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
