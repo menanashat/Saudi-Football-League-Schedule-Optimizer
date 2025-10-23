@@ -2256,7 +2256,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                         'medium-high': {'bg': '#00BCD4', 'text': '#FFF'},  # Added medium-high
                         'medium': {'bg': '#2196F3', 'text': '#FFF'}
                     }
-                    color = prestige_colors[prestige_level]
+                    color = prestige_colors.get(prestige_level, {'bg': '#6c757d', 'text': '#FFF'})
                     prestige_html = f"""<div style='background: {color['bg']}; color: {color['text']}; display: inline-block; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; margin: 5px 0;'>{prestige_icon} {prestige_desc}</div>"""
                 
                 # Get rest days
@@ -2433,9 +2433,11 @@ def display_week_scenarios(week_number, matches_from_excel):
                     prestige_colors = {
                         'elite': {'bg': '#FFD700', 'text': '#000'},
                         'high': {'bg': '#4CAF50', 'text': '#FFF'},
-                        'medium': {'bg': '#2196F3', 'text': '#FFF'}
+                        'medium-high': {'bg': '#00BCD4', 'text': '#FFF'},  # Add this
+                        'medium': {'bg': '#2196F3', 'text': '#FFF'},
+                        'regular': {'bg': '#6c757d', 'text': '#FFF'}  # Add this
                     }
-                    color = prestige_colors[prestige_level]
+                    color = prestige_colors.get(prestige_level, {'bg': '#6c757d', 'text': '#FFF'})  # Change to .get()
                     prestige_html = f"""<div style='background: {color['bg']}; color: {color['text']}; display: inline-block; padding: 4px 10px; border-radius: 15px; font-weight: bold; font-size: 0.8em; margin: 4px 0;'>{prestige_icon} {prestige_desc}</div>"""
                 
                 # Get rest days for both teams
