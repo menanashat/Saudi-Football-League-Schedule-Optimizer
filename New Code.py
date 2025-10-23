@@ -1907,19 +1907,19 @@ def get_team_rank_badge(team):
     
     # Define badge styles based on ranking tiers
     if rank == 1:
-        style = {'icon': '', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': 'CHAMPION'}
+        style = {'icon': '', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': ''}
     elif rank == 2:
-        style = {'icon': '', 'color': '#C0C0C0', 'bg': '#F5F5F5', 'border': '#C0C0C0', 'text': 'RUNNER-UP'}
+        style = {'icon': '', 'color': '#C0C0C0', 'bg': '#F5F5F5', 'border': '#C0C0C0', 'text': ''}
     elif rank == 3:
-        style = {'icon': '', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': 'BRONZE'}
+        style = {'icon': '', 'color': '#CD7F32', 'bg': '#FFF5EE', 'border': '#CD7F32', 'text': ''}
     elif rank <= 5:
         style = {'icon': '', 'color': '#4A90E2', 'bg': '#E8F4FD', 'border': '#4A90E2', 'text': ''}
     elif rank <= 10:
         style = {'icon': '', 'color': '#5C6BC0', 'bg': '#E8EAF6', 'border': '#5C6BC0', 'text': ''}
     elif rank <= 14:
-        style = {'icon': '', 'color': '#78909C', 'bg': '#ECEFF1', 'border': '#78909C', 'text': 'MID TABLE'}
+        style = {'icon': '', 'color': '#78909C', 'bg': '#ECEFF1', 'border': '#78909C', 'text': ''}
     else:
-        style = {'icon': '', 'color': '#9E9E9E', 'bg': '#FAFAFA', 'border': '#BDBDBD', 'text': 'LOWER TABLE'}
+        style = {'icon': '', 'color': '#9E9E9E', 'bg': '#FAFAFA', 'border': '#BDBDBD', 'text': ''}
     
     # Build badge HTML using consistent double quotes
     badge_parts = []
