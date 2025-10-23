@@ -2253,6 +2253,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                     prestige_colors = {
                         'elite': {'bg': '#FFD700', 'text': '#000'},
                         'high': {'bg': '#4CAF50', 'text': '#FFF'},
+                        'medium-high': {'bg': '#00BCD4', 'text': '#FFF'},  # Added medium-high
                         'medium': {'bg': '#2196F3', 'text': '#FFF'}
                     }
                     color = prestige_colors[prestige_level]
