@@ -1855,9 +1855,20 @@ def check_team_in_rankings(team_name):
 
 
 
+def get_ordinal_suffix(rank):
+    """
+    Convert a number to its ordinal form (1st, 2nd, 3rd, etc.)
+    """
+    if 10 <= rank % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(rank % 10, 'th')
+    return f"{rank}{suffix}"
+
+
 def get_team_rank_badge(team):
     """
-    Get a visual badge for team ranking.
+    Get a visual badge for team ranking with ordinal numbers.
     Returns HTML string with badge or empty string.
     Teams without historical data get a "NEW TEAM" badge.
     """
@@ -1891,6 +1902,9 @@ def get_team_rank_badge(team):
     rank = rank_info['rank']
     avg = rank_info['average']
     
+    # Get ordinal form of rank
+    ordinal_rank = get_ordinal_suffix(rank)
+    
     # Define badge styles based on ranking tiers
     if rank == 1:
         style = {'icon': '', 'color': '#FFD700', 'bg': '#FFF9E6', 'border': '#FFD700', 'text': 'CHAMPION'}
@@ -1919,12 +1933,19 @@ def get_team_rank_badge(team):
     badge_parts.append('</span>')
     badge_parts.append('<span style="color: ')
     badge_parts.append(style['color'])
-    badge_parts.append('; font-weight: bold; margin-left: 4px;">#')
-    badge_parts.append(str(rank))
-
+    badge_parts.append('; font-weight: bold; margin-left: 4px;">')
+    badge_parts.append(ordinal_rank)  # Use ordinal form instead of just rank
+    
+    # Add text label if it exists
+    if style['text']:
+        badge_parts.append(' - ')
+        badge_parts.append(style['text'])
+    
+    badge_parts.append('</span>')
     badge_parts.append('</div>')
     
     return ''.join(badge_parts)
+
 
 def get_match_prestige_level(home_team, away_team):
     """
