@@ -2300,9 +2300,9 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Extract just the number from badges
                 home_rank_num = home_rank_badge.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
                 away_rank_num = away_rank_badge.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
-                selected_card_parts.append(f'<div style="display: flex; gap: 10px; margin-bottom: 8px;">')
-                selected_card_parts.append(f'<div style="background: #155724; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{home} {home_rank_num}</div>')
-                selected_card_parts.append(f'<div style="background: #155724; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{away} {away_rank_num}</div>')
+                selected_card_parts.append(f'<div style="display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">')
+                selected_card_parts.append(f'<div style="background: #155724; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; white-space: nowrap;">{home} <span style="font-size: 16px; margin-left: 8px;">{home_rank_num}</span></div>')
+                selected_card_parts.append(f'<div style="background: #155724; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; white-space: nowrap;">{away} <span style="font-size: 16px; margin-left: 8px;">{away_rank_num}</span></div>')
                 selected_card_parts.append(f'</div>')
                 selected_card_parts.append(f'<div style="font-weight:bold; color:#28a745; font-size:14px;">✅ (SELECTED)</div>')
                 
@@ -2492,9 +2492,9 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Extract just the number from badges
                 home_rank_num = home_rank_inline.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
                 away_rank_num = away_rank_inline.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
-                card_parts.append(f'<div style="display: flex; gap: 10px; margin-bottom: 8px;">')
-                card_parts.append(f'<div style="background: #2196F3; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{home} {home_rank_num}</div>')
-                card_parts.append(f'<div style="background: #2196F3; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{away} {away_rank_num}</div>')
+                card_parts.append(f'<div style="display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">')
+                card_parts.append(f'<div style="background: #2196F3; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; white-space: nowrap;">{home} <span style="font-size: 16px; margin-left: 8px;">{home_rank_num}</span></div>')
+                card_parts.append(f'<div style="background: #2196F3; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; white-space: nowrap;">{away} <span style="font-size: 16px; margin-left: 8px;">{away_rank_num}</span></div>')
                 card_parts.append(f'</div>')
                 
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
@@ -4158,6 +4158,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
