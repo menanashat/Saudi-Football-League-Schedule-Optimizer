@@ -2312,9 +2312,6 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if prestige_html:
                     selected_card_parts.append(prestige_html)
                 
-                if prestige_html:
-                    selected_card_parts.append(prestige_html)
-                
                 selected_card_parts.append('<div style="margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap: wrap;">')
                 if home_badge:
                     selected_card_parts.append(home_badge)
@@ -2500,20 +2497,17 @@ def display_week_scenarios(week_number, matches_from_excel):
                 card_parts.append(f'<div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">')
                 
                 # Team names with ranks on same line
-                card_parts.append('<div style="font-weight: bold; display:flex; align-items:center; gap:8px; flex-wrap: wrap; margin-bottom: 8px;">')
-                card_parts.append(f'<span>{home}</span>')
+                card_parts.append('<div style="font-weight: bold; display:flex; align-items:center; gap:8px; flex-wrap: wrap; margin-bottom: 8px; line-height: 1.8;">')
+                card_parts.append(f'<span style="white-space: nowrap;">{home}</span>')
                 if home_badge:
                     card_parts.append(home_badge)
-                card_parts.append('<span style="margin: 0 5px;">vs</span>')
-                card_parts.append(f'<span>{away}</span>')
+                card_parts.append('<span style="margin: 0 5px; white-space: nowrap;">vs</span>')
+                card_parts.append(f'<span style="white-space: nowrap;">{away}</span>')
                 if away_badge:
                     card_parts.append(away_badge)
                 card_parts.append('</div>')
                 
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
-                
-                if prestige_html:
-                    card_parts.append(prestige_html)
                 
                 if prestige_html:
                     card_parts.append(prestige_html)
@@ -4182,6 +4176,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
