@@ -2298,14 +2298,14 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Team names with ranks on same line
                 selected_card_parts.append('<div style="display:flex; align-items:center; gap:15px; flex-wrap: wrap; margin-bottom: 8px;">')
                 selected_card_parts.append(f'<div style="font-weight:bold; color:#155724; font-size:18px; display:flex; align-items:center; gap:8px;">')
-                selected_card_parts.append(f'✅ <span>{home}</span>')
+                selected_card_parts.append(f'<span>{home}</span>')
                 if home_badge:
                     selected_card_parts.append(home_badge)
                 selected_card_parts.append(f'<span style="margin: 0 5px;">vs</span>')
                 selected_card_parts.append(f'<span>{away}</span>')
                 if away_badge:
                     selected_card_parts.append(away_badge)
-                selected_card_parts.append(f'<span style="margin-left: 5px;">(SELECTED)</span>')
+                selected_card_parts.append(f'<span style="margin-left: 5px;">✅ (SELECTED)</span>')
                 selected_card_parts.append('</div>')
                 selected_card_parts.append('</div>')
                 
@@ -2507,13 +2507,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if prestige_html:
                     card_parts.append(prestige_html)
                 
-                # # Add team badges on same line with flexbox
-                # card_parts.append('<div style="margin-top: 5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">')
-                # if home_badge:
-                #     card_parts.append(home_badge)
-                # if away_badge:
-                #     card_parts.append(away_badge)
-                # card_parts.append('</div>')
+
                 
                 card_parts.append(f'<div>🏟️ {scenario.stadium} ({scenario.city})</div>')
                 card_parts.append(f'<div style="margin-top: 5px;">{time_context}</div>')
@@ -4171,6 +4165,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
