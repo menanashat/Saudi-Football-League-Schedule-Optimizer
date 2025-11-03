@@ -2291,17 +2291,20 @@ def display_week_scenarios(week_number, matches_from_excel):
                         last_match_parts.append("</div>")
                         last_match_html = ''.join(last_match_parts)
                 
-                # Build selected card HTML properly with team ranks side by side
+                # Build selected card HTML properly with team ranks in squares side by side
                 selected_card_parts = []
                 selected_card_parts.append('<div style="background-color:#d4edda; border:2px solid #28a745; border-radius:10px; padding:15px; margin:10px 0;">')
-                # Add team ranks side by side with team names in circular badges
+                # Add team ranks in squares beside each other
                 home_rank_badge = get_team_rank_badge(home) if home_badge else ""
                 away_rank_badge = get_team_rank_badge(away) if away_badge else ""
-                selected_card_parts.append(f'<div style="color:#155724; font-size:16px; line-height: 1.8;">')
-                selected_card_parts.append(f'<div style="font-weight:bold; display: flex; align-items: center; gap: 10px;"><span>{home}</span><span style="background: #155724; color: white; border-radius: 50%; width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">{home_rank_badge.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")}</span></div>')
-                selected_card_parts.append(f'<div style="font-weight:bold; display: flex; align-items: center; gap: 10px;"><span>{away}</span><span style="background: #155724; color: white; border-radius: 50%; width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">{away_rank_badge.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")}</span></div>')
+                # Extract just the number from badges
+                home_rank_num = home_rank_badge.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
+                away_rank_num = away_rank_badge.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
+                selected_card_parts.append(f'<div style="display: flex; gap: 10px; margin-bottom: 8px;">')
+                selected_card_parts.append(f'<div style="background: #155724; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{home} {home_rank_num}</div>')
+                selected_card_parts.append(f'<div style="background: #155724; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{away} {away_rank_num}</div>')
                 selected_card_parts.append(f'</div>')
-                selected_card_parts.append(f'<div style="font-weight:bold; color:#28a745; font-size:14px; margin-top: 5px;">✅ (SELECTED)</div>')
+                selected_card_parts.append(f'<div style="font-weight:bold; color:#28a745; font-size:14px;">✅ (SELECTED)</div>')
                 
                 if prestige_html:
                     selected_card_parts.append(prestige_html)
@@ -2479,16 +2482,19 @@ def display_week_scenarios(week_number, matches_from_excel):
                     availability_section = f'<div style="color: #d32f2f; font-weight: bold; margin-top: 8px;">⚠️ Unavailable: {escaped_reason}</div>'
         
                 
-                # Display scenario card with team ranks side by side in circular badges
+                # Display scenario card with team ranks in squares side by side
                 card_parts = []
                 card_parts.append(f'<div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">')
                 
-                # Add team ranks side by side with team names in circular badges
+                # Add team ranks in squares beside each other
                 home_rank_inline = get_team_rank_badge(home) if home_badge else ""
                 away_rank_inline = get_team_rank_badge(away) if away_badge else ""
-                card_parts.append(f'<div style="font-size: 15px; line-height: 1.8; margin-bottom: 8px;">')
-                card_parts.append(f'<div style="font-weight: bold; display: flex; align-items: center; gap: 10px;"><span>{home}</span><span style="background: #2196F3; color: white; border-radius: 50%; width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">{home_rank_inline.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")}</span></div>')
-                card_parts.append(f'<div style="font-weight: bold; display: flex; align-items: center; gap: 10px;"><span>{away}</span><span style="background: #2196F3; color: white; border-radius: 50%; width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">{away_rank_inline.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")}</span></div>')
+                # Extract just the number from badges
+                home_rank_num = home_rank_inline.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
+                away_rank_num = away_rank_inline.replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
+                card_parts.append(f'<div style="display: flex; gap: 10px; margin-bottom: 8px;">')
+                card_parts.append(f'<div style="background: #2196F3; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{home} {home_rank_num}</div>')
+                card_parts.append(f'<div style="background: #2196F3; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px;">{away} {away_rank_num}</div>')
                 card_parts.append(f'</div>')
                 
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
@@ -4152,6 +4158,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
