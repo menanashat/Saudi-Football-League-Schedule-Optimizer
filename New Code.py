@@ -2291,14 +2291,17 @@ def display_week_scenarios(week_number, matches_from_excel):
                         last_match_parts.append("</div>")
                         last_match_html = ''.join(last_match_parts)
                 
-                # Build selected card HTML properly with team ranks below each other
+                # Build selected card HTML properly with team ranks side by side
                 selected_card_parts = []
                 selected_card_parts.append('<div style="background-color:#d4edda; border:2px solid #28a745; border-radius:10px; padding:15px; margin:10px 0;">')
-                # Add team ranks below team names
+                # Add team ranks side by side with team names
                 home_rank_badge = get_team_rank_badge(home) if home_badge else ""
                 away_rank_badge = get_team_rank_badge(away) if away_badge else ""
-                selected_card_parts.append(f'<div style="font-weight:bold; color:#155724; font-size:18px;">✅ {home} vs {away} (SELECTED)</div>')
-                selected_card_parts.append(f'<div style="margin-top: 5px;">{home_rank_badge} {away_rank_badge}</div>')
+                selected_card_parts.append(f'<div style="color:#155724; font-size:16px; line-height: 1.6;">')
+                selected_card_parts.append(f'<div style="font-weight:bold;">{home} {home_rank_badge}</div>')
+                selected_card_parts.append(f'<div style="font-weight:bold;">{away} {away_rank_badge}</div>')
+                selected_card_parts.append(f'</div>')
+                selected_card_parts.append(f'<div style="font-weight:bold; color:#28a745; font-size:14px; margin-top: 5px;">✅ (SELECTED)</div>')
                 
                 if prestige_html:
                     selected_card_parts.append(prestige_html)
@@ -2476,15 +2479,17 @@ def display_week_scenarios(week_number, matches_from_excel):
                     availability_section = f'<div style="color: #d32f2f; font-weight: bold; margin-top: 8px;">⚠️ Unavailable: {escaped_reason}</div>'
         
                 
-                # Display scenario card with team ranks below team names
+                # Display scenario card with team ranks side by side
                 card_parts = []
                 card_parts.append(f'<div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">')
                 
-                # Add team ranks below match title
+                # Add team ranks side by side with team names
                 home_rank_inline = get_team_rank_badge(home) if home_badge else ""
                 away_rank_inline = get_team_rank_badge(away) if away_badge else ""
-                card_parts.append(f'<div style="font-weight: bold; font-size: 16px; margin-bottom: 3px;">{home} vs {away}</div>')
-                card_parts.append(f'<div style="margin-bottom: 8px;">{home_rank_inline} {away_rank_inline}</div>')
+                card_parts.append(f'<div style="font-size: 15px; line-height: 1.6; margin-bottom: 8px;">')
+                card_parts.append(f'<div style="font-weight: bold;">{home} {home_rank_inline}</div>')
+                card_parts.append(f'<div style="font-weight: bold;">{away} {away_rank_inline}</div>')
+                card_parts.append(f'</div>')
                 
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
                 
@@ -4147,6 +4152,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
