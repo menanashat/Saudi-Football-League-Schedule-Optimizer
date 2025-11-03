@@ -2312,12 +2312,7 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if prestige_html:
                     selected_card_parts.append(prestige_html)
                 
-                selected_card_parts.append('<div style="margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap: wrap;">')
-                if home_badge:
-                    selected_card_parts.append(home_badge)
-                if away_badge:
-                    selected_card_parts.append(away_badge)
-                selected_card_parts.append('</div>')
+
                 
                 selected_card_parts.append(f'<div style="color:#155724; margin-top:5px; line-height:1.5;">')
                 selected_card_parts.append(f'📅 {selected_scenario.date} ({day_name}) 🕐 {selected_scenario.time}<br>')
@@ -4176,6 +4171,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
