@@ -2512,13 +2512,13 @@ def display_week_scenarios(week_number, matches_from_excel):
                 if prestige_html:
                     card_parts.append(prestige_html)
                 
-                # Add team badges on same line with flexbox
-                card_parts.append('<div style="margin-top: 5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">')
-                if home_badge:
-                    card_parts.append(home_badge)
-                if away_badge:
-                    card_parts.append(away_badge)
-                card_parts.append('</div>')
+                # # Add team badges on same line with flexbox
+                # card_parts.append('<div style="margin-top: 5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">')
+                # if home_badge:
+                #     card_parts.append(home_badge)
+                # if away_badge:
+                #     card_parts.append(away_badge)
+                # card_parts.append('</div>')
                 
                 card_parts.append(f'<div>🏟️ {scenario.stadium} ({scenario.city})</div>')
                 card_parts.append(f'<div style="margin-top: 5px;">{time_context}</div>')
@@ -4176,6 +4176,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
