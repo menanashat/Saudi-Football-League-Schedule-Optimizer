@@ -2294,7 +2294,23 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Build selected card HTML properly
                 selected_card_parts = []
                 selected_card_parts.append('<div style="background-color:#d4edda; border:2px solid #28a745; border-radius:10px; padding:15px; margin:10px 0;">')
-                selected_card_parts.append(f'<div style="font-weight:bold; color:#155724; font-size:18px;">✅ {home} vs {away} (SELECTED)</div>')
+                
+                # Team names with ranks on same line
+                selected_card_parts.append('<div style="display:flex; align-items:center; gap:15px; flex-wrap: wrap; margin-bottom: 8px;">')
+                selected_card_parts.append(f'<div style="font-weight:bold; color:#155724; font-size:18px; display:flex; align-items:center; gap:8px;">')
+                selected_card_parts.append(f'✅ <span>{home}</span>')
+                if home_badge:
+                    selected_card_parts.append(home_badge)
+                selected_card_parts.append(f'<span style="margin: 0 5px;">vs</span>')
+                selected_card_parts.append(f'<span>{away}</span>')
+                if away_badge:
+                    selected_card_parts.append(away_badge)
+                selected_card_parts.append(f'<span style="margin-left: 5px;">(SELECTED)</span>')
+                selected_card_parts.append('</div>')
+                selected_card_parts.append('</div>')
+                
+                if prestige_html:
+                    selected_card_parts.append(prestige_html)
                 
                 if prestige_html:
                     selected_card_parts.append(prestige_html)
@@ -2482,7 +2498,22 @@ def display_week_scenarios(week_number, matches_from_excel):
                 # Display scenario card - build HTML more carefully
                 card_parts = []
                 card_parts.append(f'<div style="background-color: {card_color}; border-radius: 10px; padding: 15px; margin: 10px 0; border: 2px solid {border_color};">')
+                
+                # Team names with ranks on same line
+                card_parts.append('<div style="font-weight: bold; display:flex; align-items:center; gap:8px; flex-wrap: wrap; margin-bottom: 8px;">')
+                card_parts.append(f'<span>{home}</span>')
+                if home_badge:
+                    card_parts.append(home_badge)
+                card_parts.append('<span style="margin: 0 5px;">vs</span>')
+                card_parts.append(f'<span>{away}</span>')
+                if away_badge:
+                    card_parts.append(away_badge)
+                card_parts.append('</div>')
+                
                 card_parts.append(f'<div style="font-weight: bold;">📅 {scenario.date} ({day_name}) 🕐 {scenario.time}</div>')
+                
+                if prestige_html:
+                    card_parts.append(prestige_html)
                 
                 if prestige_html:
                     card_parts.append(prestige_html)
@@ -4151,6 +4182,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
