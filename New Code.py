@@ -3852,7 +3852,24 @@ def main():
         st.rerun()
 
 
-    
+
+
+    if st.sidebar.button("Generate Scenarios"):
+        st.session_state.schedule_df = generate_full_schedule_with_isha(
+            teams_data=teams_data,
+            weather_data=weather_data,
+            attendance_model=attendance_model,
+            profit_model=profit_model,
+            models_loaded=models_loaded,
+            start_date=start_date_dt,
+            end_date=end_date_dt,
+            matches_from_excel=matches_from_excel,
+            matches_per_week=matches_per_week
+        )
+
+        st.sidebar.success(f"Generated {len(st.session_state.schedule_df)} scenarios!")
+        st.rerun()
+        
     # Download All Scenarios Button
     if not st.session_state.schedule_df.empty and st.session_state.scenario_manager.scenarios:
         if st.sidebar.button("📥 Download All Scenarios (34 Weeks)", use_container_width=True):
@@ -3984,24 +4001,7 @@ def main():
             else:
                 st.sidebar.warning("No scenario data to export.")
     else:
-        st.sidebar.info("💡 Generate scenarios first to enable download")
-
-
-    if st.sidebar.button("Generate Scenarios"):
-        st.session_state.schedule_df = generate_full_schedule_with_isha(
-            teams_data=teams_data,
-            weather_data=weather_data,
-            attendance_model=attendance_model,
-            profit_model=profit_model,
-            models_loaded=models_loaded,
-            start_date=start_date_dt,
-            end_date=end_date_dt,
-            matches_from_excel=matches_from_excel,
-            matches_per_week=matches_per_week
-        )
-
-        st.sidebar.success(f"Generated {len(st.session_state.schedule_df)} scenarios!")
-        st.rerun()
+        st.sidebar.info("💡 Generate scenarios first to enable download")    
 
 
     # Tabs
@@ -4301,6 +4301,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
