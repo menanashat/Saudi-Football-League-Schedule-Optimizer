@@ -3851,6 +3851,142 @@ def main():
         st.session_state.selected_week = 7
         st.rerun()
 
+
+    
+    # Download All Scenarios Button
+    if not st.session_state.schedule_df.empty and st.session_state.scenario_manager.scenarios:
+        if st.sidebar.button("📥 Download All Scenarios (34 Weeks)", use_container_width=True):
+            # Prepare comprehensive scenarios data
+            all_scenarios_data = []
+            
+            for match_id, scenarios in st.session_state.scenario_manager.scenarios.items():
+                # Find week number for this match
+                week_number = None
+                home_team = None
+                away_team = None
+                
+                for week, match_ids in st.session_state.week_match_ids.items():
+                    for (h_team, a_team), m_id in match_ids.items():
+                        if m_id == match_id:
+                            week_number = week
+                            home_team = h_team
+                            away_team = a_team
+                            break
+                    if week_number:
+                        break
+                
+                for scenario in scenarios:
+                    # Check if this scenario is selected
+                    is_selected = match_id in st.session_state.scenario_manager.selected_scenarios and \
+                                 st.session_state.scenario_manager.selected_scenarios[match_id] == scenario.scenario_id
+                    
+                    # Get prayer times for context
+                    match_date = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').date()
+                    prayer_times = get_prayer_times_unified(scenario.city, match_date, prayer='all')
+                    maghrib_time = prayer_times.get('timings', {}).get('maghrib', 'N/A')
+                    isha_time = prayer_times.get('timings', {}).get('isha', 'N/A')
+                    
+                    all_scenarios_data.append({
+                        'Week': week_number if week_number else 'Unknown',
+                        'Match_ID': match_id,
+                        'Scenario_ID': scenario.scenario_id,
+                        'Home_Team': scenario.home_team,
+                        'Away_Team': scenario.away_team,
+                        'Date': scenario.date,
+                        'Day': datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A'),
+                        'Time': scenario.time,
+                        'City': scenario.city,
+                        'Stadium': scenario.stadium,
+                        'Maghrib_Prayer': maghrib_time,
+                        'Isha_Prayer': isha_time,
+                        'Suitability_Score': scenario.suitability_score,
+                        'Attendance_%': scenario.attendance_percentage,
+                        'Profit': scenario.profit,
+                        'Is_Available': scenario.is_available,
+                        'Is_Selected': is_selected,
+                        'Conflict_Reason': getattr(scenario, 'conflict_reason', '')
+                    })
+            
+            if all_scenarios_data:
+                df_all_scenarios = pd.DataFrame(all_scenarios_data)
+                df_all_scenarios = df_all_scenarios.sort_values(['Week', 'Match_ID', 'Date', 'Time'])
+                
+                # Create Excel file with multiple sheets
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    # Sheet 1: All Scenarios
+                    df_all_scenarios.to_excel(writer, index=False, sheet_name='All_Scenarios')
+                    
+                    # Sheet 2: Available Scenarios Only
+                    df_available = df_all_scenarios[df_all_scenarios['Is_Available'] == True]
+                    df_available.to_excel(writer, index=False, sheet_name='Available_Scenarios')
+                    
+                    # Sheet 3: Selected Scenarios Only
+                    df_selected = df_all_scenarios[df_all_scenarios['Is_Selected'] == True]
+                    df_selected.to_excel(writer, index=False, sheet_name='Selected_Scenarios')
+                    
+                    # Sheet 4: Summary by Week
+                    week_summary = df_all_scenarios.groupby('Week').agg({
+                        'Scenario_ID': 'count',
+                        'Is_Available': 'sum',
+                        'Is_Selected': 'sum'
+                    }).rename(columns={
+                        'Scenario_ID': 'Total_Scenarios',
+                        'Is_Available': 'Available_Scenarios',
+                        'Is_Selected': 'Selected_Matches'
+                    }).reset_index()
+                    week_summary.to_excel(writer, index=False, sheet_name='Week_Summary')
+                    
+                    # Auto-adjust column widths for all sheets
+                    for sheet_name in writer.sheets:
+                        worksheet = writer.sheets[sheet_name]
+                        for idx, col in enumerate(writer.sheets[sheet_name].columns):
+                            max_length = 0
+                            column = col[0].column_letter
+                            for cell in col:
+                                try:
+                                    if len(str(cell.value)) > max_length:
+                                        max_length = len(str(cell.value))
+                                except:
+                                    pass
+                            adjusted_width = min(max_length + 2, 50)
+                            worksheet.column_dimensions[column].width = adjusted_width
+                
+                output.seek(0)
+                
+                total_scenarios = len(df_all_scenarios)
+                available_scenarios = len(df_available)
+                selected_matches = len(df_selected)
+                total_weeks = df_all_scenarios['Week'].nunique()
+                
+                st.sidebar.download_button(
+                    label=f"📥 Download ({total_scenarios} scenarios)",
+                    data=output,
+                    file_name=f"All_Scenarios_34_Weeks_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="download_all_scenarios_sidebar",
+                    use_container_width=True
+                )
+                
+                st.sidebar.info(f"""
+                **Export Summary:**
+                - 📊 {total_weeks} weeks
+                - 🎯 {total_scenarios} total scenarios
+                - ✅ {available_scenarios} available
+                - 🏆 {selected_matches} selected
+                
+                **4 Sheets included:**
+                1. All Scenarios
+                2. Available Only
+                3. Selected Only
+                4. Week Summary
+                """)
+            else:
+                st.sidebar.warning("No scenario data to export.")
+    else:
+        st.sidebar.info("💡 Generate scenarios first to enable download")
+
+
     if st.sidebar.button("Generate Scenarios"):
         st.session_state.schedule_df = generate_full_schedule_with_isha(
             teams_data=teams_data,
@@ -4165,7 +4301,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
