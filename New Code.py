@@ -3880,7 +3880,7 @@ def main():
         
     # Download All Scenarios Button
     if not st.session_state.schedule_df.empty and st.session_state.scenario_manager.scenarios:
-        if st.sidebar.button("📥 Download All Scenarios (34 Weeks)", use_container_width=True):
+        if st.sidebar.button("📥 Download All Scenarios", use_container_width=True):
             # Prepare comprehensive scenarios data
             all_scenarios_data = []
             
@@ -4309,6 +4309,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
