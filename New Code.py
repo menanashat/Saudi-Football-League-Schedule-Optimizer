@@ -2420,13 +2420,21 @@ def display_week_scenarios(week_number, matches_from_excel):
                     scenario_manager=st.session_state.scenario_manager
                 )
                 
+                # Check if the day is full (3 matches already selected)
+                current_day_count = st.session_state.day_counts.get(scenario_date, 0)
+                is_day_full = current_day_count >= 3
+                
                 if not scenario.is_available:
                     card_color = "#ffebee"
                     border_color = "#f44336"
+                elif is_day_full:
+                    # Day is full - show with orange/warning colors
+                    card_color = "#fff3e0"
+                    border_color = "#ff9800"
                 else:
                     card_color = "#e8f5e9" if scenario.suitability_score > 80 else "#fff3e0" if scenario.suitability_score > 60 else "#ffebee"
                     border_color = "#4caf50" if scenario.suitability_score > 80 else "#ff9800" if scenario.suitability_score > 60 else "#f44336"
-                
+                    
                 day_name = datetime.datetime.strptime(scenario.date, '%Y-%m-%d').strftime('%A')
                 time_context = get_scenario_time_context(scenario, available_scenarios)
                 
@@ -4301,6 +4309,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
