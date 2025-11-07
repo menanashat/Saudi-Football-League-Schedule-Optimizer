@@ -3852,7 +3852,7 @@ def main():
     end_date_dt = datetime.datetime.combine(end_date, datetime.datetime.min.time())
 
     if st.sidebar.button("Reset Schedule"):
-        st.session_state.scenario_manager = type('obj', (object,), {'scenarios': {}, 'selected_scenarios': {}})()
+        st.session_state.scenario_manager = ScenarioManager()
         st.session_state.week_match_ids = {w: {} for w in range(7, 35)}
         st.session_state.day_counts = {}
         st.session_state.schedule_df = pd.DataFrame()
@@ -4309,6 +4309,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
